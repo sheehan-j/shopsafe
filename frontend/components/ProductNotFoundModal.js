@@ -10,7 +10,6 @@ const ProductNotFoundModal = ({
 	const handleCancelPressed = () => {
 		// barcode and productNotFound get set in useEffect for scanModalVisible
 		setProductNotFoundModalVisible(false);
-		setScanned(false);
 	};
 
 	const handleRescanPressed = () => {
