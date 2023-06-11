@@ -1,16 +1,5 @@
-import {
-	SafeAreaView,
-	StyleSheet,
-	View,
-	Text,
-	Pressable,
-	Modal,
-} from "react-native";
-import Animated, {
-	useSharedValue,
-	withTiming,
-	useAnimatedStyle,
-} from "react-native-reanimated";
+import { SafeAreaView, StyleSheet, View, Text, Pressable } from "react-native";
+import Modal from "react-native-modal";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { useState, useEffect, useRef } from "react";
 import colors from "../config/colors";
@@ -22,48 +11,26 @@ const ScanModal = ({
 	setProduct,
 	scanModalVisible,
 	setScanModalVisible,
+	scanned,
+	setScanned,
+	productNotFound,
+	setProductNotFound,
 }) => {
-	const [scanned, setScanned] = useState(false);
 	const [hasPermission, setHasPermission] = useState(false);
-	const [productNotFound, setProductNotFound] = useState(false);
+	// Have a separate state for modal visibility from productNotFound
+	// productNotFound signals the textbox to change, this signals modal visibility
 	const [productNotFoundModalVisible, setProductNotFoundModalVisible] =
 		useState(false);
-
-	// Aniamtion related values
-	const animatedOpacity = useSharedValue(0);
-	const animatedStyles = useAnimatedStyle(() => {
-		return {
-			opacity: withTiming(animatedOpacity.value),
-		};
-	});
 
 	// Handle order of setting state variables for productNotFound modal
 	// If productNotFoundModalVisible has been set false and productNotFound is still true,
 	// then the cancel button has been pressed
 	// This order makes the productNotFound modal fade out, THEN the scan modal closes
-	useEffect(() => {
-		if (!productNotFoundModalVisible) {
-			if (productNotFound) {
-				setScanModalVisible(false);
-			}
+	const productNotFoundModalDismissed = () => {
+		if (productNotFound) {
+			setScanModalVisible(false);
 		}
-	}, [productNotFoundModalVisible]);
-
-	// Reset scanned and productNotFound after scanModal has closed to prevent
-	// weird visual effects with "searching.../barcode detected/product not found" text
-	useEffect(() => {
-		if (!scanModalVisible) {
-			setProductNotFound(false);
-			setScanned(false);
-		}
-	}, [scanModalVisible]);
-
-	// Reset animatedOpacity value for the modal background
-	useEffect(() => {
-		if (!productNotFound) {
-			animatedOpacity.value = 0;
-		}
-	}, [productNotFound]);
+	};
 
 	useEffect(() => {
 		(async () => {
@@ -86,30 +53,15 @@ const ScanModal = ({
 
 		if (result.status == "1") {
 			setProduct(result.product.product_name);
+			setScanModalVisible(false);
 		} else {
 			setProductNotFound(true);
-			animatedOpacity.value = animatedOpacity.value === 1 ? 0 : 1;
 			setProductNotFoundModalVisible(true);
 		}
 	};
 
-	const handleCancelPressed = async () => {
-		setProduct(null);
-		setScanModalVisible(false);
-	};
-
 	return (
 		<View style={{ flex: 1 }}>
-			<Animated.View
-				style={[
-					styles.modal_background,
-					animatedStyles,
-					{
-						display: productNotFound ? "flex" : "none",
-					},
-				]}
-				visible={productNotFound}
-			/>
 			<SafeAreaView style={styles.container}>
 				<BarCodeScanner
 					style={StyleSheet.absoluteFillObject}
@@ -157,16 +109,26 @@ const ScanModal = ({
 							},
 							styles.cancelButton,
 						]}
-						onPressOut={handleCancelPressed}
+						onPressOut={() => {
+							setScanModalVisible(false);
+						}}
 					>
 						<Text style={styles.cancelButtonText}>Cancel</Text>
 					</Pressable>
 				</View>
 			</SafeAreaView>
 			<Modal
-				animationType="fade"
-				transparent={true}
-				visible={productNotFoundModalVisible}
+				animationIn={"fadeIn"}
+				animationOut={"fadeOut"}
+				animationInTiming={200}
+				animationOutTiming={200}
+				isVisible={productNotFoundModalVisible}
+				hasBackdrop={true}
+				backdropColor={"black"}
+				backdropOpacity={0.7}
+				backdropTransitionOutTiming={0} // *** FIXES ANIMATION FLICKER
+				style={{ margin: 0 }}
+				onModalHide={productNotFoundModalDismissed}
 			>
 				<ProductNotFoundModal
 					setProductNotFound={setProductNotFound}

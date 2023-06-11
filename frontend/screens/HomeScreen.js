@@ -1,4 +1,5 @@
-import { SafeAreaView, StyleSheet, View, Modal } from "react-native";
+import { SafeAreaView, StyleSheet, View } from "react-native";
+import Modal from "react-native-modal";
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import colors from "../config/colors";
@@ -9,27 +10,44 @@ import searchApi from "../api/searchApi";
 const HomeScreen = () => {
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
+	const [productNotFound, setProductNotFound] = useState(false);
+	const [scanned, setScanned] = useState(false);
 
-	useEffect(() => {
+	const scanModalDismissed = () => {
 		if (product) {
-			setScanModalVisible(false);
-			setTimeout();
+			alert(product + "navigating");
 		}
-	}, [product]);
+
+		// Reset these now that the modal has been dismissed
+		setScanned(false);
+		setProductNotFound(false);
+	};
 
 	return (
 		<View style={{ flex: 1 }}>
 			<SafeAreaView style={styles.container}>
 				<Modal
-					animationType="slide"
-					transparent={true}
-					visible={scanModalVisible}
+					animationIn={"slideInUp"}
+					animationOut={"slideOutDown"}
+					isVisible={scanModalVisible}
+					hasBackdrop={true}
+					backdropColor={"black"}
+					backdropOpacity={0.7}
+					backdropTransitionOutTiming={0} // *** FIXES ANIMATION FLICKER
+					style={{ margin: 0 }}
+					onModalHide={scanModalDismissed}
+					onSwipeComplete={() => setScanModalVisible(false)}
+					swipeDirection={"down"}
 				>
 					<ScanModal
 						scanModalVisible={scanModalVisible}
 						setScanModalVisible={setScanModalVisible}
 						product={product}
 						setProduct={setProduct}
+						scanned={scanned}
+						setScanned={setScanned}
+						productNotFound={productNotFound}
+						setProductNotFound={setProductNotFound}
 					/>
 				</Modal>
 
