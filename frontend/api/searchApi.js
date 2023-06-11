@@ -11,5 +11,5 @@ exports.search = async (barcode) => {
 	});
 	const result = await response.json();
 
-	return result?.product?.product_name;
+	return result;
 };

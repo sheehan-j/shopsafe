@@ -1,33 +1,55 @@
-import { SafeAreaView, TextInput, Pressable, Text, View } from "react-native";
-import { useState } from "react";
+import { SafeAreaView, StyleSheet, View, Modal } from "react-native";
+import { useState, useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import colors from "../config/colors";
+import Navbar from "../components/Navbar";
+import ScanModal from "../components/ScanModal";
 import searchApi from "../api/searchApi";
 
 const HomeScreen = () => {
-	const [barcode, setBarcode] = useState("");
+	const [scanModalVisible, setScanModalVisible] = useState(false);
+	const [product, setProduct] = useState(null);
 
-	const handleSubmit = async () => {
-		const test = await searchApi.search(barcode);
-		alert(test);
-	};
+	useEffect(() => {
+		if (product) {
+			setScanModalVisible(false);
+			setTimeout();
+		}
+	}, [product]);
 
 	return (
-		<SafeAreaView>
-			<View style={{ padding: 30 }}>
-				<TextInput
-					onChangeText={setBarcode}
-					value={barcode}
-					style={{ backgroundColor: "red", height: 30 }}
-				/>
-				<Pressable
-					onPress={() => {
-						handleSubmit();
-					}}
+		<View style={{ flex: 1 }}>
+			<SafeAreaView style={styles.container}>
+				<Modal
+					animationType="slide"
+					transparent={true}
+					visible={scanModalVisible}
 				>
-					<Text>Submit</Text>
-				</Pressable>
-			</View>
-		</SafeAreaView>
+					<ScanModal
+						scanModalVisible={scanModalVisible}
+						setScanModalVisible={setScanModalVisible}
+						product={product}
+						setProduct={setProduct}
+					/>
+				</Modal>
+
+				<Navbar
+					setScanModalVisible={setScanModalVisible}
+					setProduct={setProduct}
+				/>
+			</SafeAreaView>
+		</View>
 	);
 };
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+		backgroundColor: colors.appBackground,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+});
 
 export default HomeScreen;
