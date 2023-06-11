@@ -11,10 +11,14 @@ const ScanModal = ({
 	setProduct,
 	scanModalVisible,
 	setScanModalVisible,
+	scanned,
+	setScanned,
+	productNotFound,
+	setProductNotFound,
 }) => {
-	const [scanned, setScanned] = useState(false);
 	const [hasPermission, setHasPermission] = useState(false);
-	const [productNotFound, setProductNotFound] = useState(false);
+	// Have a separate state for modal visibility from productNotFound
+	// productNotFound signals the textbox to change, this signals modal visibility
 	const [productNotFoundModalVisible, setProductNotFoundModalVisible] =
 		useState(false);
 
@@ -25,18 +29,8 @@ const ScanModal = ({
 	const productNotFoundModalDismissed = () => {
 		if (productNotFound) {
 			setScanModalVisible(false);
-			setScanned(false);
 		}
 	};
-
-	// Reset scanned and productNotFound after scanModal has closed to prevent
-	// weird visual effects with "searching.../barcode detected/product not found" text
-	useEffect(() => {
-		if (!scanModalVisible) {
-			setProductNotFound(false);
-			setScanned(false);
-		}
-	}, [scanModalVisible]);
 
 	useEffect(() => {
 		(async () => {
@@ -59,15 +53,11 @@ const ScanModal = ({
 
 		if (result.status == "1") {
 			setProduct(result.product.product_name);
+			setScanModalVisible(false);
 		} else {
 			setProductNotFound(true);
 			setProductNotFoundModalVisible(true);
 		}
-	};
-
-	const handleCancelPressed = async () => {
-		setProduct(null);
-		setScanModalVisible(false);
 	};
 
 	return (
@@ -119,7 +109,9 @@ const ScanModal = ({
 							},
 							styles.cancelButton,
 						]}
-						onPressOut={handleCancelPressed}
+						onPressOut={() => {
+							setScanModalVisible(false);
+						}}
 					>
 						<Text style={styles.cancelButtonText}>Cancel</Text>
 					</Pressable>
@@ -128,6 +120,8 @@ const ScanModal = ({
 			<Modal
 				animationIn={"fadeIn"}
 				animationOut={"fadeOut"}
+				animationInTiming={200}
+				animationOutTiming={200}
 				isVisible={productNotFoundModalVisible}
 				hasBackdrop={true}
 				backdropColor={"black"}
