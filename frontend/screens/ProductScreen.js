@@ -1,10 +1,12 @@
 import { SafeAreaView, StyleSheet, View, Text } from "react-native";
+import colors from "../config/colors";
+import testProduct from "../testProduct";
 
-const ProductScreen = () => {
+const ProductScreen = ({ navigation, route }) => {
 	return (
 		<View style={{ flex: 1 }}>
 			<SafeAreaView style={styles.container}>
-				<Text>yer</Text>
+				<Text>{JSON.stringify(route.params.product)}</Text>
 			</SafeAreaView>
 		</View>
 	);

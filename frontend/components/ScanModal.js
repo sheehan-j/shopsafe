@@ -51,8 +51,8 @@ const ScanModal = ({
 		setScanned(true);
 		const result = await searchApi.search(data);
 
-		if (result.status == "1") {
-			setProduct(result.product.product_name);
+		if (result.status == 1) {
+			setProduct(result);
 			setScanModalVisible(false);
 		} else {
 			setProductNotFound(true);

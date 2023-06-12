@@ -12,5 +12,20 @@ exports.search = async (barcode) => {
 	});
 	const result = await response.json();
 
-	return result;
+	if (result.status == 1) {
+		return {
+			status: 1,
+			code: result.code,
+			keywords: result.product._keywords,
+			brands: result.product.brands,
+			categories: result.product.categories,
+			image_url: result.product.image_url,
+			thumbnail_url: result.product.image_thumb_url,
+			ingredients: result.product.ingredients,
+		};
+	} else {
+		return {
+			status: 0,
+		};
+	}
 };

@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar";
 import ScanModal from "../components/ScanModal";
 import searchApi from "../api/searchApi";
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
 	const [productNotFound, setProductNotFound] = useState(false);
@@ -15,7 +15,7 @@ const HomeScreen = () => {
 
 	const scanModalDismissed = () => {
 		if (product) {
-			alert(product + "navigating");
+			navigation.navigate("Product", { product: product });
 		}
 
 		// Reset these now that the modal has been dismissed
