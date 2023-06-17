@@ -13,15 +13,22 @@ exports.search = async (barcode) => {
 	const result = await response.json();
 
 	if (result.status == 1) {
+		// Capture ingredients' text form for easier display on client
+		var ingredients_text = result.product.ingredients.map((element) => {
+			return element?.text;
+		});
+
 		return {
 			status: 1,
 			code: result.code,
+			name: result.product.product_name,
 			keywords: result.product._keywords,
 			brands: result.product.brands,
 			categories: result.product.categories,
 			image_url: result.product.image_url,
 			thumbnail_url: result.product.image_thumb_url,
 			ingredients: result.product.ingredients,
+			ingredients_text: ingredients_text,
 		};
 	} else {
 		return {

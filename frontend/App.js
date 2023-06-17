@@ -23,7 +23,6 @@ export default App = () => {
 
 	return (
 		<>
-			<StatusBar barStyle={"dark-content"} />
 			<NavigationContainer>
 				<Stack.Navigator
 					screenOptions={{
