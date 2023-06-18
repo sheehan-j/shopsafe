@@ -10,6 +10,7 @@ const ProductListing = ({
 	saved,
 	setProduct,
 	navigation,
+	onSaveButtonPressed,
 }) => {
 	const onPress = async () => {
 		const result = await searchApi.search(barcode);
@@ -32,7 +33,7 @@ const ProductListing = ({
 						style={styles.icon}
 					/>
 				)}
-				<Pressable>
+				<Pressable onPress={onSaveButtonPressed} hitSlop={10}>
 					{saved && (
 						<Image
 							source={require("../assets/save_icon_pressed.png")}
@@ -69,14 +70,14 @@ const styles = StyleSheet.create({
 	},
 	iconsContainer: {
 		width: "100%",
-		height: 20,
+		height: 22,
 		marginBottom: 10,
 		flexDirection: "row",
 		justifyContent: "space-between",
 	},
 	icon: {
-		height: 20,
-		width: 20,
+		height: 22,
+		width: 22,
 	},
 	imageContainer: {
 		backgroundColor: "transparent",

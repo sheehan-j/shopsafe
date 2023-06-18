@@ -50,12 +50,4 @@ const styles = StyleSheet.create({
 		color: "white",
 		// color: colors.navy,
 	},
-	headerDesign: {
-		position: "absolute",
-		width: "100%",
-		height: "100%",
-		right: 0,
-		bottom: 0,
-		zIndex: 1,
-	},
 });

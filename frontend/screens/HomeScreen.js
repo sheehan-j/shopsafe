@@ -1,7 +1,14 @@
 import { StyleSheet, View, ScrollView, Text } from "react-native";
 import Modal from "react-native-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withTiming,
+	Easing,
+	interpolate,
+} from "react-native-reanimated";
 
 import colors from "../config/colors";
 import Navbar from "../components/Navbar";
@@ -10,14 +17,10 @@ import HomeScreenHeader from "../components/HomeScreenHeader";
 import ProductListing from "../components/ProductListing";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
-import searchApi from "../api/searchApi";
+import ProductSavedMessage from "../components/ProductSavedMessage";
 
 const HomeScreen = ({ navigation }) => {
 	const statusBarHeight = useStatusBarHeight();
-	const [scanModalVisible, setScanModalVisible] = useState(false);
-	const [product, setProduct] = useState(null);
-	const [productNotFound, setProductNotFound] = useState(false);
-	const [scanned, setScanned] = useState(false);
 	const [recentScans, setRecentScans] = useState([
 		{
 			image_url:
@@ -36,7 +39,13 @@ const HomeScreen = ({ navigation }) => {
 			saved: true,
 		},
 	]);
+	const [scanModalVisible, setScanModalVisible] = useState(false);
+	const [product, setProduct] = useState(null);
+	const [productNotFound, setProductNotFound] = useState(false);
+	const [scanned, setScanned] = useState(false);
+	const saveMessageAnimation = useSharedValue(0);
 
+	// Resetting data and navigating after product scan
 	const scanModalDismissed = () => {
 		if (product) {
 			navigation.navigate("Product", { product: product });
@@ -47,6 +56,33 @@ const HomeScreen = ({ navigation }) => {
 		setProductNotFound(false);
 	};
 
+	// Handle save message eanimation
+	const onSaveButtonPressed = () => {
+		saveMessageAnimation.value = withTiming(1, {
+			duration: 250,
+			easing: Easing.inOut(Easing.quad),
+		});
+
+		setTimeout(() => {
+			saveMessageAnimation.value = withTiming(0, {
+				duration: 250,
+				easing: Easing.inOut(Easing.quad),
+			});
+		}, 1500);
+	};
+
+	const slideDownAnimation = useAnimatedStyle(() => {
+		return {
+			transform: [
+				{
+					translateY:
+						saveMessageAnimation.value * (30 + statusBarHeight),
+				},
+			],
+		};
+	});
+
+	// Processing Recent Scans into Components
 	const renderRecentScans = () => {
 		const rows = [];
 		for (let i = 0; i < recentScans.length; i += 2) {
@@ -66,6 +102,7 @@ const HomeScreen = ({ navigation }) => {
 						saved={item1.saved}
 						setProduct={setProduct}
 						navigation={navigation}
+						onSaveButtonPressed={onSaveButtonPressed}
 					/>
 					{item2 && (
 						<ProductListing
@@ -76,6 +113,7 @@ const HomeScreen = ({ navigation }) => {
 							saved={item2.saved}
 							setProduct={setProduct}
 							navigation={navigation}
+							onSaveButtonPressed={onSaveButtonPressed}
 						/>
 					)}
 				</View>
@@ -90,9 +128,13 @@ const HomeScreen = ({ navigation }) => {
 			{/* Set status bar content to dark */}
 			<StatusBar style={"dark"} />
 			<View style={{ flex: 1 }}>
+				<Animated.View
+					style={[slideDownAnimation, styles.savedMessageContainer]}
+				>
+					<ProductSavedMessage />
+				</Animated.View>
 				{/* <CustomStatusBar color={colors.headerGreen} border={false} /> */}
 				<HomeScreenHeader name={"Jordan"} />
-
 				<ScrollView
 					style={{
 						width: "100%",
@@ -113,13 +155,11 @@ const HomeScreen = ({ navigation }) => {
 						</View>
 					</View>
 				</ScrollView>
-
 				{/* NAVBAR */}
 				<Navbar
 					setScanModalVisible={setScanModalVisible}
 					setProduct={setProduct}
 				/>
-
 				{/* SCANNER MODAL */}
 				<Modal
 					animationIn={"slideInUp"}
@@ -171,6 +211,14 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		width: "100%",
 		marginBottom: 10,
+	},
+	savedMessageContainer: {
+		width: "100%",
+		flexDirection: "row",
+		justifyContent: "center",
+		position: "absolute",
+		top: -32, // Hide based on fixed height of the message
+		zIndex: 97,
 	},
 });
 
