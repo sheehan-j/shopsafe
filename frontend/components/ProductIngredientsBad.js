@@ -10,7 +10,7 @@ const ProductIngredientsBad = () => {
 					style={styles.checkIcon}
 				></Image>
 				<Text style={styles.messageText}>
-					<Text style={{ fontFamily: "Inter-Bold" }}>
+					<Text style={{ fontFamily: "Inter-ExtraBold" }}>
 						{"At least one "}
 					</Text>
 					ingredient in this product was found in your list of

@@ -65,7 +65,7 @@ const ScanModal = ({
 				image_url: result.image_url,
 				name: result.name,
 				barcode: data,
-				avoid: true, // TODO: Update this to reflect rear result
+				avoid: result.avoid, // TODO: Update this to reflect rear result
 				saved: false, // TODO: Update this to reflect rear result
 			},
 		]);

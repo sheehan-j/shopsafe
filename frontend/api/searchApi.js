@@ -1,4 +1,17 @@
+import { processColor } from "react-native-reanimated";
 import { config } from "../config/constants";
+import processIngredients from "../util/processIngredients";
+
+const testAllergies = [
+	{
+		user: "jordansheehan26@gmail.com",
+		id: "en:e338",
+	},
+	{
+		user: "jordansheehan26@gmail.com",
+		id: "en:e221",
+	},
+];
 
 exports.search = async (barcode) => {
 	const SEARCH_URL = config.FOOD_API_BASE + barcode;
@@ -10,13 +23,22 @@ exports.search = async (barcode) => {
 			"Content-Type": "application/json",
 		},
 	});
+
+	if (!response.ok) {
+		return {
+			status: 0,
+		};
+	}
+
 	const result = await response.json();
+	console.log("Result received from OpenFood.");
 
 	if (result.status == 1) {
-		// Capture ingredients' text form for easier display on client
-		var ingredients_text = result.product.ingredients.map((element) => {
-			return element?.text;
-		});
+		// Compare product ingredients against user allergies
+		const processedIngredients = processIngredients(
+			testAllergies,
+			result.product.ingredients
+		);
 
 		return {
 			status: 1,
@@ -27,8 +49,8 @@ exports.search = async (barcode) => {
 			categories: result.product.categories,
 			image_url: result.product.image_url,
 			thumbnail_url: result.product.image_thumb_url,
-			ingredients: result.product.ingredients,
-			ingredients_text: ingredients_text,
+			avoid: processedIngredients.avoid,
+			ingredients: processedIngredients.ingredients,
 		};
 	} else {
 		return {

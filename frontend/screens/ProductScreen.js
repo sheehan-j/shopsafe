@@ -20,6 +20,36 @@ import ProductIngredientsBad from "../components/ProductIngredientsBad";
 const ProductScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 
+	const processIngredientsIntoComponents = () => {
+		const ingredients = [];
+
+		route.params.product.ingredients.map((ingredient, index) => {
+			if (!ingredient.avoid) {
+				ingredients.push(
+					<View key={index} style={styles.ingredient}>
+						<Text style={styles.ingredientText}>
+							{ingredient.name}
+						</Text>
+					</View>
+				);
+			} else {
+				ingredients.push(
+					<View key={index} style={styles.ingredientBad}>
+						<Text style={styles.ingredientBadText}>
+							{ingredient.name}
+						</Text>
+						<Image
+							source={require("../assets/x_icon.png")}
+							style={{ width: 20, height: 20 }}
+						/>
+					</View>
+				);
+			}
+		});
+
+		return ingredients;
+	};
+
 	return (
 		<>
 			<StatusBar style={"dark"} />
@@ -78,28 +108,19 @@ const ProductScreen = ({ navigation, route }) => {
 							{route.params.product.name}
 						</Text>
 
-						{/* <ProductIngredientsOkay /> */}
-						<ProductIngredientsBad />
+						{route.params.product.avoid && (
+							<ProductIngredientsBad />
+						)}
+						{!route.params.product.avoid && (
+							<ProductIngredientsOkay />
+						)}
 
 						{/* INGREDIENTS */}
 						<View style={styles.ingredientsContainer}>
 							<Text style={styles.ingredientsTitle}>
 								Ingredients
 							</Text>
-							{route.params.product.ingredients_text.map(
-								(text, index) => {
-									return (
-										<View
-											key={index}
-											style={styles.ingredient}
-										>
-											<Text style={styles.ingredientText}>
-												{text}
-											</Text>
-										</View>
-									);
-								}
-							)}
+							{processIngredientsIntoComponents()}
 						</View>
 					</View>
 				</ScrollView>
@@ -174,6 +195,8 @@ const styles = StyleSheet.create({
 		width: "100%",
 		backgroundColor: "white",
 		borderRadius: 8,
+		paddingHorizontal: 15,
+		paddingVertical: 10,
 		shadowColor: "#888888",
 		shadowOffset: {
 			width: 0,
@@ -189,9 +212,30 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: colors.navy,
 		fontFamily: "Inter-Medium",
+	},
+	ingredientBad: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		width: "100%",
+		backgroundColor: colors.transRed,
+		borderRadius: 8,
+		shadowColor: "#888888",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.03,
+		shadowRadius: 1.5,
+		marginBottom: 7,
 		paddingHorizontal: 15,
 		paddingVertical: 10,
-		borderRadius: 20,
+	},
+	ingredientBadText: {
+		textAlign: "left",
+		fontSize: 18,
+		color: colors.red,
+		fontFamily: "Inter-Medium",
 	},
 });
 

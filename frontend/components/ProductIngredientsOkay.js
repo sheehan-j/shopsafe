@@ -11,7 +11,9 @@ const ProductIngredientsOkay = () => {
 				></Image>
 				<Text style={styles.messageText}>
 					This product{" "}
-					<Text style={{ fontFamily: "Inter-Bold" }}>likely</Text>{" "}
+					<Text style={{ fontFamily: "Inter-ExtraBold" }}>
+						likely
+					</Text>{" "}
 					does not contain any ingredients you are allergic to.
 				</Text>
 			</View>
