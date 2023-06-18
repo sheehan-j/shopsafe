@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
 		borderWidth: 4,
 		borderRadius: 10,
 		marginBottom: 15,
-		backgroundColor: colors.appBackground,
+		backgroundColor: colors.navy,
 	},
 	brand: {
 		width: "100%",

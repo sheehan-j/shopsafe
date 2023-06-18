@@ -1,9 +1,16 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
-import { useEffect } from "react";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
 
-const ProductListing = ({ image, title, barcode, setProduct, navigation }) => {
+const ProductListing = ({
+	image_url,
+	name,
+	barcode,
+	avoid,
+	saved,
+	setProduct,
+	navigation,
+}) => {
 	const onPress = async () => {
 		const result = await searchApi.search(barcode);
 		setProduct(result);
@@ -11,12 +18,42 @@ const ProductListing = ({ image, title, barcode, setProduct, navigation }) => {
 	};
 
 	return (
-		<Pressable style={styles.container} onPressOut={onPress}>
-			<View style={styles.imageContainer}>
-				<Image source={{ uri: image }} style={styles.image} />
+		<View style={styles.container}>
+			<View style={styles.iconsContainer}>
+				{avoid && (
+					<Image
+						source={require("../assets/x_icon.png")}
+						style={styles.icon}
+					/>
+				)}
+				{!avoid && (
+					<Image
+						source={require("../assets/check_icon.png")}
+						style={styles.icon}
+					/>
+				)}
+				<Pressable>
+					{saved && (
+						<Image
+							source={require("../assets/save_icon_pressed.png")}
+							style={styles.icon}
+						/>
+					)}
+					{!saved && (
+						<Image
+							source={require("../assets/save_icon.png")}
+							style={styles.icon}
+						/>
+					)}
+				</Pressable>
 			</View>
-			<Text style={styles.title}>{title}</Text>
-		</Pressable>
+			<Pressable onPress={onPress}>
+				<View style={styles.imageContainer}>
+					<Image source={{ uri: image_url }} style={styles.image} />
+				</View>
+				<Text style={styles.title}>{name}</Text>
+			</Pressable>
+		</View>
 	);
 };
 
@@ -30,23 +67,35 @@ const styles = StyleSheet.create({
 		boxSizing: "content-box",
 		borderRadius: 7,
 	},
-	imageContainer: {
-		shadowColor: "#888888",
-		shadowOffset: {
-			width: 0,
-			height: 4,
-		},
-		shadowOpacity: 0.1,
+	iconsContainer: {
+		width: "100%",
+		height: 20,
 		marginBottom: 10,
+		flexDirection: "row",
+		justifyContent: "space-between",
+	},
+	icon: {
+		height: 20,
+		width: 20,
+	},
+	imageContainer: {
+		backgroundColor: "transparent",
+		marginBottom: 10,
+		// shadowColor: "#888888",
+		// },
+		// shadowOffset: {
+		// 	width: 0,
+		// 	height: 4,
+		// shadowOpacity: 0.2,
 	},
 	image: {
-		width: "100%",
 		aspectRatio: 1,
 		resizeMode: "contain",
 	},
 	title: {
 		fontFamily: "Inter-Semi",
-		fontSize: 18,
+		fontSize: 17,
+		textAlign: "left",
 		color: colors.navy,
 	},
 });

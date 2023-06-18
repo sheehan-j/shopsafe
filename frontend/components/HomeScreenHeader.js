@@ -1,9 +1,12 @@
 import { StyleSheet, Text, View, Image } from "react-native";
+import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
 
 const HomeScreenHeader = ({ name }) => {
+	const statusBarHeight = useStatusBarHeight();
+
 	return (
-		<View style={styles.container}>
+		<View style={{ ...styles.container, paddingTop: 40 + statusBarHeight }}>
 			<Text style={styles.greeting}>Hello,</Text>
 			<Text style={styles.name}>{name}</Text>
 		</View>
@@ -20,7 +23,6 @@ const styles = StyleSheet.create({
 		borderBottomLeftRadius: 20,
 		borderBottomRightRadius: 20,
 		paddingHorizontal: 30,
-		paddingTop: 40,
 		paddingBottom: 18,
 		shadowColor: "#888888",
 		shadowOffset: {
@@ -29,7 +31,6 @@ const styles = StyleSheet.create({
 		},
 		shadowOpacity: 0.06,
 		shadowRadius: 2.5,
-		marginBottom: 30,
 	},
 	greeting: {
 		width: "100%",

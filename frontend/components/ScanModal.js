@@ -9,12 +9,13 @@ import ProductNotFoundModal from "./ProductNotFoundModal";
 const ScanModal = ({
 	product,
 	setProduct,
-	scanModalVisible,
 	setScanModalVisible,
 	scanned,
 	setScanned,
 	productNotFound,
 	setProductNotFound,
+	recentScans,
+	setRecentScans,
 }) => {
 	const [hasPermission, setHasPermission] = useState(false);
 	// Have a separate state for modal visibility from productNotFound
@@ -51,13 +52,25 @@ const ScanModal = ({
 		setScanned(true);
 		const result = await searchApi.search(data);
 
-		if (result.status == 1) {
-			setProduct(result);
-			setScanModalVisible(false);
-		} else {
+		// If product not found was returned by API
+		if (result.status == 0) {
 			setProductNotFound(true);
 			setProductNotFoundModalVisible(true);
+			return;
 		}
+
+		setRecentScans([
+			...recentScans,
+			{
+				image_url: result.image_url,
+				name: result.name,
+				barcode: data,
+				avoid: true, // TODO: Update this to reflect rear result
+				saved: false, // TODO: Update this to reflect rear result
+			},
+		]);
+		setProduct(result);
+		setScanModalVisible(false);
 	};
 
 	return (

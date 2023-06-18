@@ -1,12 +1,11 @@
-import { SafeAreaView, StyleSheet, View, ScrollView, Text } from "react-native";
+import { StyleSheet, View, ScrollView, Text } from "react-native";
 import Modal from "react-native-modal";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 
 import colors from "../config/colors";
 import Navbar from "../components/Navbar";
 import ScanModal from "../components/ScanModal";
-import CustomStatusBar from "../components/CustomStatusBar";
 import HomeScreenHeader from "../components/HomeScreenHeader";
 import ProductListing from "../components/ProductListing";
 
@@ -21,25 +20,21 @@ const HomeScreen = ({ navigation }) => {
 	const [scanned, setScanned] = useState(false);
 	const [recentScans, setRecentScans] = useState([
 		{
-			image: "https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
-			title: "Monster Energy Peachy Keen",
+			image_url:
+				"https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
+			name: "Monster Energy Peachy Keen",
 			barcode: "0070847029427",
+			avoid: true,
+			saved: false,
 		},
 		{
-			image: "https://images.openfoodfacts.org/images/products/04963406/front_en.21.400.jpg",
-			title: "Coca-Cola",
+			image_url:
+				"https://images.openfoodfacts.org/images/products/04963406/front_en.21.400.jpg",
+			name: "Coca-Cola",
 			barcode: "04963406",
+			avoid: false,
+			saved: true,
 		},
-		{
-			image: "https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
-			title: "Monster Energy Peachy Keen",
-			barcode: "0070847029427",
-		},
-		// {
-		// 	image: "https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
-		// 	title: "Monster Energy Peachy Keen",
-		// 	barcode: "0070847029427",
-		// },
 	]);
 
 	const scanModalDismissed = () => {
@@ -62,21 +57,23 @@ const HomeScreen = ({ navigation }) => {
 			else item2 = null;
 
 			rows.push(
-				<View style={styles.recentScansRow}>
+				<View style={styles.recentScansRow} key={i}>
 					<ProductListing
-						key={i}
-						image={item1.image}
-						title={item1.title}
+						image_url={item1.image_url}
+						name={item1.name}
 						barcode={item1.barcode}
+						avoid={item1.avoid}
+						saved={item1.saved}
 						setProduct={setProduct}
 						navigation={navigation}
 					/>
 					{item2 && (
 						<ProductListing
-							key={i + 1}
-							image={item2.image}
-							title={item2.title}
+							image_url={item2.image_url}
+							name={item2.name}
 							barcode={item2.barcode}
+							avoid={item2.avoid}
+							saved={item2.saved}
 							setProduct={setProduct}
 							navigation={navigation}
 						/>
@@ -93,15 +90,13 @@ const HomeScreen = ({ navigation }) => {
 			{/* Set status bar content to dark */}
 			<StatusBar style={"dark"} />
 			<View style={{ flex: 1 }}>
-				<CustomStatusBar color={colors.headerGreen} border={false} />
+				{/* <CustomStatusBar color={colors.headerGreen} border={false} /> */}
+				<HomeScreenHeader name={"Jordan"} />
 
 				<ScrollView
 					style={{
 						width: "100%",
-						paddingTop:
-							Platform.OS === "android"
-								? StatusBar.currentHeight
-								: statusBarHeight,
+						paddingTop: 30,
 					}}
 					showsVerticalScrollIndicator={false}
 					showsHorizontalScrollIndicator={false}
@@ -109,13 +104,9 @@ const HomeScreen = ({ navigation }) => {
 					<View
 						style={{
 							flex: 1,
-							paddingBottom:
-								Platform.OS === "android"
-									? StatusBar.currentHeight * 2 + 100
-									: statusBarHeight * 2 + 100,
+							paddingBottom: 160, // Accounting for navbar
 						}}
 					>
-						<HomeScreenHeader name={"Jordan"} />
 						<Text style={styles.sectionHeader}>Recent Scans</Text>
 						<View style={styles.recentScansContainer}>
 							{renderRecentScans()}
@@ -152,6 +143,8 @@ const HomeScreen = ({ navigation }) => {
 						setScanned={setScanned}
 						productNotFound={productNotFound}
 						setProductNotFound={setProductNotFound}
+						recentScans={recentScans}
+						setRecentScans={setRecentScans}
 					/>
 				</Modal>
 			</View>
