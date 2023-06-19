@@ -58,10 +58,11 @@ const ProductScreen = ({ navigation, route }) => {
 				<ScrollView
 					style={{
 						width: "100%",
-						paddingTop:
-							Platform.OS === "android"
-								? StatusBar.currentHeight + 10
-								: statusBarHeight + 10,
+						// paddingTop:
+						// 	Platform.OS === "android"
+						// 		? StatusBar.currentHeight + 10
+						// 		: statusBarHeight + 10,
+						paddingTop: statusBarHeight + 10,
 					}}
 					showsVerticalScrollIndicator={false}
 					showsHorizontalScrollIndicator={false}
@@ -70,10 +71,11 @@ const ProductScreen = ({ navigation, route }) => {
 					<View
 						style={{
 							flex: 1,
-							paddingBottom:
-								Platform.OS === "android"
-									? StatusBar.currentHeight * 2
-									: statusBarHeight * 2,
+							// paddingBottom:
+							// 	Platform.OS === "android"
+							// 		? StatusBar.currentHeight * 2
+							// 		: statusBarHeight * 2,
+							paddingBottom: statusBarHeight,
 						}}
 					>
 						{/* BACK NAVIGATION ICON */}

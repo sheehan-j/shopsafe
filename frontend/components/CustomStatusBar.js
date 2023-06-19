@@ -10,10 +10,11 @@ const CustomStatusBar = ({ color, border }) => {
 		<View
 			style={{
 				...styles.container,
-				height:
-					Platform.OS === "android"
-						? StatusBar.currentHeight
-						: statusBarHeight,
+				// height:
+				// 	Platform.OS === "android"
+				// 		? StatusBar.currentHeight
+				// 		: statusBarHeight,
+				height: statusBarHeight,
 				backgroundColor: color,
 				borderBottomWidth: border ? 0.25 : 0,
 			}}
