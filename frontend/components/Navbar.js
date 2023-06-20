@@ -1,15 +1,35 @@
 import { View, Pressable, StyleSheet, Image } from "react-native";
 import colors from "../config/colors";
 
-const Navbar = ({ setScanModalVisible, setProduct }) => {
+const Navbar = ({
+	navigation,
+	currScreen,
+	setScanModalVisible,
+	setProduct,
+}) => {
+	const openScanModal = () => {
+		setProduct(null); // Clear out any existing product data
+		setScanModalVisible(true);
+	};
+
 	return (
 		<View style={styles.container}>
-			<Pressable style={styles.iconContainer}>
-				<Image
-					source={require("../assets/home_icon_dark.png")}
-					style={styles.icon}
-				/>
-			</Pressable>
+			{currScreen === "Home" && (
+				<View style={styles.iconContainer}>
+					<Image
+						source={require("../assets/home_icon_dark.png")}
+						style={styles.icon}
+					/>
+				</View>
+			)}
+			{currScreen !== "Home" && (
+				<Pressable style={styles.iconContainer}>
+					<Image
+						source={require("../assets/home_icon_dark.png")}
+						style={styles.icon}
+					/>
+				</Pressable>
+			)}
 			<Pressable
 				style={({ pressed }) => [
 					{
@@ -19,22 +39,29 @@ const Navbar = ({ setScanModalVisible, setProduct }) => {
 					},
 					styles.scanIcon,
 				]}
-				onPressOut={() => {
-					setProduct(null); // Clear out any existing product data
-					setScanModalVisible(true);
-				}}
+				onPress={openScanModal}
 			>
 				<Image
 					source={require("../assets/scan_icon.png")}
 					style={styles.scanIconImg}
 				/>
 			</Pressable>
-			<Pressable style={styles.iconContainer}>
-				<Image
-					source={require("../assets/home_icon.png")}
-					style={styles.icon}
-				/>
-			</Pressable>
+			{currScreen === "Profile" && (
+				<View style={styles.iconContainer}>
+					<Image
+						source={require("../assets/profile_icon_pressed.png")}
+						style={styles.icon}
+					/>
+				</View>
+			)}
+			{currScreen !== "Profile" && (
+				<Pressable style={styles.iconContainer}>
+					<Image
+						source={require("../assets/profile_icon.png")}
+						style={styles.icon}
+					/>
+				</Pressable>
+			)}
 		</View>
 	);
 };

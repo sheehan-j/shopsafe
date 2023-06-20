@@ -1,5 +1,4 @@
 import { StyleSheet, View, ScrollView, Text } from "react-native";
-import Modal from "react-native-modal";
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
@@ -7,19 +6,17 @@ import Animated, {
 	useAnimatedStyle,
 	withTiming,
 	Easing,
-	interpolate,
 } from "react-native-reanimated";
 
 import colors from "../config/colors";
+import CustomStatusBar from "../components/CustomStatusBar";
 import Navbar from "../components/Navbar";
-import ScanModal from "../components/ScanModal";
-import HomeScreenHeader from "../components/HomeScreenHeader";
 import ProductListing from "../components/ProductListing";
-
-import useStatusBarHeight from "../util/useStatusBarHeight";
 import ProductSavedMessage from "../components/ProductSavedMessage";
 
-const HomeScreen = ({ navigation }) => {
+import useStatusBarHeight from "../util/useStatusBarHeight";
+
+const ProfileScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const [recentScans, setRecentScans] = useState([
 		{
@@ -39,22 +36,7 @@ const HomeScreen = ({ navigation }) => {
 			saved: true,
 		},
 	]);
-	const [scanModalVisible, setScanModalVisible] = useState(false);
-	const [product, setProduct] = useState(null);
-	const [productNotFound, setProductNotFound] = useState(false);
-	const [scanned, setScanned] = useState(false);
 	const saveMessageAnimation = useSharedValue(0);
-
-	// Resetting data and navigating after product scan
-	const scanModalDismissed = () => {
-		if (product) {
-			navigation.navigate("Product", { product: product });
-		}
-
-		// Reset these now that the modal has been dismissed
-		setScanned(false);
-		setProductNotFound(false);
-	};
 
 	// Handle save message eanimation
 	const onSaveButtonPressed = () => {
@@ -126,15 +108,14 @@ const HomeScreen = ({ navigation }) => {
 	return (
 		<>
 			{/* Set status bar content to dark */}
-			<StatusBar style={"light"} />
+			<StatusBar style={"dark"} />
 			<View style={{ flex: 1 }}>
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
 					<ProductSavedMessage />
 				</Animated.View>
-				{/* <CustomStatusBar color={colors.headerGreen} border={false} /> */}
-				<HomeScreenHeader name={"Jordan"} />
+				<CustomStatusBar color={colors.appBackground} border={false} />
 				<ScrollView
 					style={{
 						width: "100%",
@@ -149,46 +130,15 @@ const HomeScreen = ({ navigation }) => {
 							paddingBottom: 160, // Accounting for navbar
 						}}
 					>
-						<Text style={styles.sectionHeader}>Recent Scans</Text>
-						<View style={styles.recentScansContainer}>
-							{renderRecentScans()}
-						</View>
+						<Text style={styles.sectionHeader}>Profile Screen</Text>
 					</View>
 				</ScrollView>
 				{/* NAVBAR */}
 				<Navbar
-					navigation={navigation}
-					currScreen={"Home"}
-					setScanModalVisible={setScanModalVisible}
-					setProduct={setProduct}
+					currScreen={"Profile"}
+					setScanModalVisible={() => {}}
+					setProduct={() => {}}
 				/>
-				{/* SCANNER MODAL */}
-				<Modal
-					animationIn={"slideInUp"}
-					animationOut={"slideOutDown"}
-					isVisible={scanModalVisible}
-					hasBackdrop={true}
-					backdropColor={"black"}
-					backdropOpacity={0.7}
-					backdropTransitionOutTiming={0} // *** FIXES ANIMATION FLICKER
-					style={{ margin: 0 }}
-					onModalHide={scanModalDismissed}
-					onSwipeComplete={() => setScanModalVisible(false)}
-					swipeDirection={"down"}
-				>
-					<ScanModal
-						scanModalVisible={scanModalVisible}
-						setScanModalVisible={setScanModalVisible}
-						product={product}
-						setProduct={setProduct}
-						scanned={scanned}
-						setScanned={setScanned}
-						productNotFound={productNotFound}
-						setProductNotFound={setProductNotFound}
-						recentScans={recentScans}
-						setRecentScans={setRecentScans}
-					/>
-				</Modal>
 			</View>
 		</>
 	);
@@ -224,4 +174,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default HomeScreen;
+export default ProfileScreen;

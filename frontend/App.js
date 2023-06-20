@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
+import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ export default App = () => {
 				>
 					<Stack.Screen name="Home" component={HomeScreen} />
 					<Stack.Screen name="Product" component={ProductScreen} />
+					<Stack.Screen name="Profile" component={ProfileScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>

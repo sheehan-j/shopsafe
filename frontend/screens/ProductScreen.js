@@ -75,7 +75,7 @@ const ProductScreen = ({ navigation, route }) => {
 							// 	Platform.OS === "android"
 							// 		? StatusBar.currentHeight * 2
 							// 		: statusBarHeight * 2,
-							paddingBottom: statusBarHeight,
+							paddingBottom: statusBarHeight * 2,
 						}}
 					>
 						{/* BACK NAVIGATION ICON */}
