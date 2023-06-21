@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
 import ProductNotFoundModal from "./ProductNotFoundModal";
+import { useAppStore } from "../util/store";
 
 const ScanModal = ({
 	product,
@@ -14,9 +15,9 @@ const ScanModal = ({
 	setScanned,
 	productNotFound,
 	setProductNotFound,
-	recentScans,
-	setRecentScans,
 }) => {
+	const addRecentScan = useAppStore((state) => state.addRecentScan);
+
 	const [hasPermission, setHasPermission] = useState(false);
 	// Have a separate state for modal visibility from productNotFound
 	// productNotFound signals the textbox to change, this signals modal visibility
@@ -59,16 +60,14 @@ const ScanModal = ({
 			return;
 		}
 
-		setRecentScans([
-			...recentScans,
-			{
-				image_url: result.image_url,
-				name: result.name,
-				barcode: data,
-				avoid: result.avoid,
-				saved: false, // TODO: Update this to reflect rear result
-			},
-		]);
+		// TODO: Update this to reflect rear result})
+		addRecentScan({
+			image_url: result.image_url,
+			name: result.name,
+			barcode: data,
+			avoid: result.avoid,
+			saved: false,
+		});
 		setProduct(result);
 		setScanModalVisible(false);
 	};

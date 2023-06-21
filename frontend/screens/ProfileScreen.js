@@ -128,17 +128,14 @@ const ProfileScreen = ({ navigation, route }) => {
 						style={{
 							flex: 1,
 							paddingBottom: 160, // Accounting for navbar
+							backgroundColor: "red",
 						}}
 					>
-						<Text style={styles.sectionHeader}>Profile Screen</Text>
+						<Text style={styles.sectionHeader}>???</Text>
 					</View>
 				</ScrollView>
 				{/* NAVBAR */}
-				<Navbar
-					currScreen={"Profile"}
-					setScanModalVisible={() => {}}
-					setProduct={() => {}}
-				/>
+				<Navbar navigation={navigation} currScreen={"Profile"} />
 			</View>
 		</>
 	);

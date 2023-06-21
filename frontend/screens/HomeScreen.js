@@ -18,32 +18,30 @@ import ProductListing from "../components/ProductListing";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import ProductSavedMessage from "../components/ProductSavedMessage";
+import { useAppStore } from "../util/store";
+import { shallow } from "zustand/shallow";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
-	const [recentScans, setRecentScans] = useState([
-		{
-			image_url:
-				"https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
-			name: "Monster Energy Peachy Keen",
-			barcode: "0070847029427",
-			avoid: false,
-			saved: false,
-		},
-		{
-			image_url:
-				"https://images.openfoodfacts.org/images/products/04963406/front_en.21.400.jpg",
-			name: "Coca-Cola",
-			barcode: "04963406",
-			avoid: true,
-			saved: true,
-		},
-	]);
+	const saveMessageAnimation = useSharedValue(0);
+
+	const { recentScans } = useAppStore(
+		(state) => ({ recentScans: state.recentScans }),
+		shallow
+	);
+
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
 	const [productNotFound, setProductNotFound] = useState(false);
 	const [scanned, setScanned] = useState(false);
-	const saveMessageAnimation = useSharedValue(0);
+
+	useEffect(() => {
+		if (route.params?.openScanModal) {
+			setProduct(null);
+			setScanModalVisible(true);
+			route.params.openScanModal = false;
+		}
+	}, [route.params?.openScanModal]);
 
 	// Resetting data and navigating after product scan
 	const scanModalDismissed = () => {
@@ -185,8 +183,6 @@ const HomeScreen = ({ navigation }) => {
 						setScanned={setScanned}
 						productNotFound={productNotFound}
 						setProductNotFound={setProductNotFound}
-						recentScans={recentScans}
-						setRecentScans={setRecentScans}
 					/>
 				</Modal>
 			</View>

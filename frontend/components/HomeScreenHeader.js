@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
+import { useAppStore } from "../util/store";
 
-const HomeScreenHeader = ({ name }) => {
+const HomeScreenHeader = () => {
 	const statusBarHeight = useStatusBarHeight();
+	const name = "Jordan";
 
 	return (
 		<View style={{ ...styles.container, paddingTop: 40 + statusBarHeight }}>

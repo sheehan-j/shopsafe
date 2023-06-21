@@ -1,4 +1,6 @@
-import { View, Pressable, StyleSheet, Image } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../config/colors";
 
 const Navbar = ({
@@ -7,29 +9,27 @@ const Navbar = ({
 	setScanModalVisible,
 	setProduct,
 }) => {
-	const openScanModal = () => {
-		setProduct(null); // Clear out any existing product data
-		setScanModalVisible(true);
-	};
-
 	return (
 		<View style={styles.container}>
-			{currScreen === "Home" && (
-				<View style={styles.iconContainer}>
-					<Image
-						source={require("../assets/home_icon_dark.png")}
-						style={styles.icon}
-					/>
-				</View>
-			)}
-			{currScreen !== "Home" && (
-				<Pressable style={styles.iconContainer}>
-					<Image
-						source={require("../assets/home_icon_dark.png")}
-						style={styles.icon}
-					/>
-				</Pressable>
-			)}
+			{/* HOME ICON */}
+			<Pressable
+				style={styles.iconContainer}
+				onPress={
+					currScreen === "Home"
+						? () => {}
+						: () => {
+								navigation.navigate("Home");
+						  }
+				}
+			>
+				<Ionicons
+					name={currScreen === "Home" ? "home" : "home-outline"}
+					size={31}
+					color={colors.navy}
+				/>
+			</Pressable>
+
+			{/* SCAN ICON */}
 			<Pressable
 				style={({ pressed }) => [
 					{
@@ -39,29 +39,45 @@ const Navbar = ({
 					},
 					styles.scanIcon,
 				]}
-				onPress={openScanModal}
+				onPress={
+					currScreen === "Home"
+						? () => {
+								setProduct(null);
+								setScanModalVisible(true);
+						  }
+						: () => {
+								navigation.navigate("Home", {
+									openScanModal: true,
+								});
+						  }
+				}
 			>
-				<Image
-					source={require("../assets/scan_icon.png")}
-					style={styles.scanIconImg}
+				<MaterialCommunityIcons
+					name="line-scan"
+					size={27}
+					color="white"
 				/>
 			</Pressable>
-			{currScreen === "Profile" && (
-				<View style={styles.iconContainer}>
-					<Image
-						source={require("../assets/profile_icon_pressed.png")}
-						style={styles.icon}
-					/>
-				</View>
-			)}
-			{currScreen !== "Profile" && (
-				<Pressable style={styles.iconContainer}>
-					<Image
-						source={require("../assets/profile_icon.png")}
-						style={styles.icon}
-					/>
-				</Pressable>
-			)}
+
+			{/* PROFILE ICON */}
+			<Pressable
+				style={styles.iconContainer}
+				onPress={
+					currScreen === "Profile"
+						? () => {}
+						: () => {
+								navigation.navigate("Profile");
+						  }
+				}
+			>
+				<Ionicons
+					name={
+						currScreen === "Profile" ? "person" : "person-outline"
+					}
+					size={31}
+					color={colors.navy}
+				/>
+			</Pressable>
 		</View>
 	);
 };
@@ -91,7 +107,7 @@ const styles = StyleSheet.create({
 		position: "relative",
 		height: 58,
 		width: 58,
-		padding: 14,
+		padding: 13,
 	},
 	icon: {
 		height: "100%",

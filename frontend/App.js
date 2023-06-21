@@ -29,9 +29,21 @@ export default App = () => {
 						headerShown: false,
 					}}
 				>
-					<Stack.Screen name="Home" component={HomeScreen} />
+					<Stack.Screen
+						name="Home"
+						component={HomeScreen}
+						options={{
+							animation: "none",
+						}}
+					/>
 					<Stack.Screen name="Product" component={ProductScreen} />
-					<Stack.Screen name="Profile" component={ProfileScreen} />
+					<Stack.Screen
+						name="Profile"
+						component={ProfileScreen}
+						options={{
+							animation: "none",
+						}}
+					/>
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>
