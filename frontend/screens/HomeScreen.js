@@ -125,7 +125,7 @@ const HomeScreen = ({ navigation, route }) => {
 		<>
 			{/* Set status bar content to dark */}
 			<StatusBar style={"light"} />
-			<View style={{ flex: 1 }}>
+			<View style={styles.container}>
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
@@ -191,6 +191,10 @@ const HomeScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: colors.appBackground,
+	},
 	sectionHeader: {
 		width: "100%",
 		fontFamily: "Inter-Bold",

@@ -1,13 +1,27 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
+import { useEffect, useState } from "react";
+import { Asset } from "expo-asset";
+import * as SplashScreen from "expo-splash-screen";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
+function cacheImages(images) {
+	return images.map((image) => {
+		if (typeof image === "string") {
+			return Image.prefetch(image);
+		} else {
+			return Asset.fromModule(image).downloadAsync();
+		}
+	});
+}
+
 export default App = () => {
+	const [appIsReady, setAppIsReady] = useState(false);
 	const [loaded] = useFonts({
 		"Inter-Bold": require("./assets/fonts/Inter-Bold.ttf"),
 		"Inter-ExtraBold": require("./assets/fonts/Inter-ExtraBold.ttf"),
@@ -17,7 +31,39 @@ export default App = () => {
 		"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
 	});
 
-	if (!loaded) {
+	// Load any resources or data that you need prior to rendering the app
+	useEffect(() => {
+		async function loadResourcesAndDataAsync() {
+			try {
+				SplashScreen.preventAutoHideAsync();
+
+				const imageAssets = cacheImages([
+					require("./assets/img/check_icon.png"),
+					require("./assets/img/x_icon.png"),
+					require("./assets/img/save_icon.png"),
+					require("./assets/img/save_icon_pressed.png"),
+					require("./assets/img/home_icon.png"),
+					require("./assets/img/home_icon_pressed.png"),
+					require("./assets/img/profile_icon.png"),
+					require("./assets/img/profile_icon_pressed.png"),
+					require("./assets/img/scan_icon.png"),
+					require("./assets/img/back_icon.png"),
+				]);
+
+				await Promise.all([...imageAssets]);
+			} catch (e) {
+				// You might want to provide this error information to an error reporting service
+				console.warn(e);
+			} finally {
+				setAppIsReady(true);
+				SplashScreen.hideAsync();
+			}
+		}
+
+		loadResourcesAndDataAsync();
+	}, []);
+
+	if (!loaded || !appIsReady) {
 		return null;
 	}
 
@@ -30,6 +76,13 @@ export default App = () => {
 					}}
 				>
 					<Stack.Screen
+						name="Profile"
+						component={ProfileScreen}
+						options={{
+							animation: "none",
+						}}
+					/>
+					<Stack.Screen
 						name="Home"
 						component={HomeScreen}
 						options={{
@@ -37,13 +90,6 @@ export default App = () => {
 						}}
 					/>
 					<Stack.Screen name="Product" component={ProductScreen} />
-					<Stack.Screen
-						name="Profile"
-						component={ProfileScreen}
-						options={{
-							animation: "none",
-						}}
-					/>
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>

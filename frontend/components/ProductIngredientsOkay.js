@@ -6,7 +6,7 @@ const ProductIngredientsOkay = () => {
 		<View style={styles.container}>
 			<View style={styles.messageContainer}>
 				<Image
-					source={require("../assets/check_icon.png")}
+					source={require("../assets/img/check_icon.png")}
 					style={styles.checkIcon}
 				></Image>
 				<Text style={styles.messageText}>

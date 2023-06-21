@@ -23,26 +23,26 @@ const ProductListing = ({
 			<View style={styles.iconsContainer}>
 				{avoid && (
 					<Image
-						source={require("../assets/x_icon.png")}
+						source={require("../assets/img/x_icon.png")}
 						style={styles.icon}
 					/>
 				)}
 				{!avoid && (
 					<Image
-						source={require("../assets/check_icon.png")}
+						source={require("../assets/img/check_icon.png")}
 						style={styles.icon}
 					/>
 				)}
 				<Pressable onPress={onSaveButtonPressed} hitSlop={10}>
 					{saved && (
 						<Image
-							source={require("../assets/save_icon_pressed.png")}
+							source={require("../assets/img/save_icon_pressed.png")}
 							style={styles.icon}
 						/>
 					)}
 					{!saved && (
 						<Image
-							source={require("../assets/save_icon.png")}
+							source={require("../assets/img/save_icon.png")}
 							style={styles.icon}
 						/>
 					)}

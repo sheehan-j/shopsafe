@@ -1,4 +1,4 @@
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../config/colors";
@@ -22,11 +22,19 @@ const Navbar = ({
 						  }
 				}
 			>
-				<Ionicons
+				<Image
+					source={
+						currScreen === "Home"
+							? require("../assets/img/home_icon_pressed.png")
+							: require("../assets/img/home_icon.png")
+					}
+					style={styles.icon}
+				/>
+				{/* <Ionicons
 					name={currScreen === "Home" ? "home" : "home-outline"}
 					size={31}
 					color={colors.navy}
-				/>
+				/> */}
 			</Pressable>
 
 			{/* SCAN ICON */}
@@ -37,7 +45,7 @@ const Navbar = ({
 							? colors.greenPressed
 							: colors.green,
 					},
-					styles.scanIcon,
+					styles.scanIconContainer,
 				]}
 				onPress={
 					currScreen === "Home"
@@ -52,11 +60,15 @@ const Navbar = ({
 						  }
 				}
 			>
-				<MaterialCommunityIcons
+				<Image
+					source={require("../assets/img/scan_icon.png")}
+					style={styles.scanIcon}
+				/>
+				{/* <MaterialCommunityIcons
 					name="line-scan"
 					size={27}
 					color="white"
-				/>
+				/> */}
 			</Pressable>
 
 			{/* PROFILE ICON */}
@@ -70,13 +82,21 @@ const Navbar = ({
 						  }
 				}
 			>
-				<Ionicons
+				<Image
+					source={
+						currScreen === "Profile"
+							? require("../assets/img/profile_icon_pressed.png")
+							: require("../assets/img/profile_icon.png")
+					}
+					style={styles.icon}
+				/>
+				{/* <Ionicons
 					name={
 						currScreen === "Profile" ? "person" : "person-outline"
 					}
 					size={31}
 					color={colors.navy}
-				/>
+				/> */}
 			</Pressable>
 		</View>
 	);
@@ -107,20 +127,20 @@ const styles = StyleSheet.create({
 		position: "relative",
 		height: 58,
 		width: 58,
-		padding: 13,
+		padding: 14,
 	},
 	icon: {
 		height: "100%",
 		width: "100%",
 	},
-	scanIcon: {
+	scanIconContainer: {
 		position: "relative",
 		height: 55,
 		width: 55,
 		borderRadius: 30,
-		padding: 14,
+		padding: 15,
 	},
-	scanIconImg: {
+	scanIcon: {
 		height: "100%",
 		width: "100%",
 	},

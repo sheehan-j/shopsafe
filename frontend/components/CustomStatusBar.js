@@ -16,7 +16,7 @@ const CustomStatusBar = ({ color, border }) => {
 				// 		: statusBarHeight,
 				height: statusBarHeight,
 				backgroundColor: color,
-				borderBottomWidth: border ? 0.25 : 0,
+				borderBottomWidth: border ? 1.1 : 0,
 			}}
 		></View>
 	);

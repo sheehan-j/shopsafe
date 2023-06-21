@@ -6,7 +6,7 @@ const ProductIngredientsBad = () => {
 		<View style={styles.container}>
 			<View style={styles.messageContainer}>
 				<Image
-					source={require("../assets/x_icon.png")}
+					source={require("../assets/img/x_icon.png")}
 					style={styles.checkIcon}
 				></Image>
 				<Text style={styles.messageText}>

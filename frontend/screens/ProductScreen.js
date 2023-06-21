@@ -39,7 +39,7 @@ const ProductScreen = ({ navigation, route }) => {
 							{ingredient.name}
 						</Text>
 						<Image
-							source={require("../assets/x_icon.png")}
+							source={require("../assets/img/x_icon.png")}
 							style={{ width: 20, height: 20 }}
 						/>
 					</View>
@@ -85,7 +85,7 @@ const ProductScreen = ({ navigation, route }) => {
 								onPress={() => navigation.pop()}
 							>
 								<Image
-									source={require("../assets/back_icon.png")}
+									source={require("../assets/img/back_icon.png")}
 									style={styles.backIconImg}
 								></Image>
 							</Pressable>
