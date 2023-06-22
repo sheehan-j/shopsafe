@@ -48,6 +48,7 @@ export default App = () => {
 					require("./assets/img/profile_icon_pressed.png"),
 					require("./assets/img/scan_icon.png"),
 					require("./assets/img/back_icon.png"),
+					require("./assets/img/profile_picture.jpg"),
 				]);
 
 				await Promise.all([...imageAssets]);

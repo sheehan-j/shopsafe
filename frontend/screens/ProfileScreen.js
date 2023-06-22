@@ -13,29 +13,12 @@ import CustomStatusBar from "../components/CustomStatusBar";
 import Navbar from "../components/Navbar";
 import ProductListing from "../components/ProductListing";
 import ProductSavedMessage from "../components/ProductSavedMessage";
+import ProfileInfoCard from "../components/ProfileInfoCard";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
 
 const ProfileScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
-	const [recentScans, setRecentScans] = useState([
-		{
-			image_url:
-				"https://images.openfoodfacts.org/images/products/007/084/702/9427/front_en.3.400.jpg",
-			name: "Monster Energy Peachy Keen",
-			barcode: "0070847029427",
-			avoid: false,
-			saved: false,
-		},
-		{
-			image_url:
-				"https://images.openfoodfacts.org/images/products/04963406/front_en.21.400.jpg",
-			name: "Coca-Cola",
-			barcode: "04963406",
-			avoid: true,
-			saved: true,
-		},
-	]);
 	const saveMessageAnimation = useSharedValue(0);
 
 	// Handle save message eanimation
@@ -109,17 +92,34 @@ const ProfileScreen = ({ navigation, route }) => {
 		<>
 			{/* Set status bar content to dark */}
 			<StatusBar style={"dark"} />
-			<View style={{ flex: 1 }}>
+			<View
+				style={{
+					...styles.container,
+					paddingTop: statusBarHeight,
+				}}
+			>
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
 					<ProductSavedMessage />
 				</Animated.View>
-				<CustomStatusBar color={colors.appBackground} border={false} />
-				<ScrollView
+
+				<CustomStatusBar color={"white"} border={false} />
+
+				<View
 					style={{
 						width: "100%",
-						paddingTop: 30,
+						backgroundColor: "white",
+						paddingVertical: 20,
+					}}
+				>
+					<ProfileInfoCard />
+				</View>
+
+				{/* <ScrollView
+					style={{
+						width: "100%",
+						// paddingTop: statusBarHeight + 30,
 					}}
 					showsVerticalScrollIndicator={false}
 					showsHorizontalScrollIndicator={false}
@@ -128,12 +128,11 @@ const ProfileScreen = ({ navigation, route }) => {
 						style={{
 							flex: 1,
 							paddingBottom: 160, // Accounting for navbar
-							backgroundColor: "red",
 						}}
 					>
 						<Text style={styles.sectionHeader}>???</Text>
 					</View>
-				</ScrollView>
+				</ScrollView> */}
 				{/* NAVBAR */}
 				<Navbar navigation={navigation} currScreen={"Profile"} />
 			</View>
@@ -142,6 +141,10 @@ const ProfileScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: colors.appBackground,
+	},
 	sectionHeader: {
 		width: "100%",
 		fontFamily: "Inter-Bold",
