@@ -74,7 +74,7 @@ const HomeScreen = ({ navigation, route }) => {
 			transform: [
 				{
 					translateY:
-						saveMessageAnimation.value * (30 + statusBarHeight),
+						saveMessageAnimation.value * (40 + statusBarHeight),
 				},
 			],
 		};

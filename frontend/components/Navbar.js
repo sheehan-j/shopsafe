@@ -1,7 +1,7 @@
 import { View, Pressable, StyleSheet, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Device from "expo-device";
 import colors from "../config/colors";
+import useExtraPadding from "../util/useExtraPadding";
 
 const Navbar = ({
 	navigation,
@@ -9,8 +9,15 @@ const Navbar = ({
 	setScanModalVisible,
 	setProduct,
 }) => {
+	const needsExtraPadding = useExtraPadding();
+
 	return (
-		<View style={styles.container}>
+		<View
+			style={{
+				...styles.container,
+				paddingBottom: needsExtraPadding ? 26 : 13,
+			}}
+		>
 			{/* HOME ICON */}
 			<Pressable
 				style={styles.iconContainer}
@@ -105,7 +112,6 @@ const Navbar = ({
 const styles = StyleSheet.create({
 	container: {
 		position: "absolute",
-		height: 100,
 		width: "100%",
 		bottom: 0,
 		backgroundColor: "white",

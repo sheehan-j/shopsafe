@@ -1,9 +1,16 @@
-import { StyleSheet, Text, View, Image, Pressable } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	View,
+	Image,
+	Pressable,
+	PixelRatio,
+} from "react-native";
 import colors from "../config/colors";
 import { useAppStore } from "../util/store";
 import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
 
-const ProfileInfoCard = () => {
+const ProfileInfoCard = ({ navigation }) => {
 	const {
 		userFirstLastName,
 		userEmail,
@@ -53,6 +60,9 @@ const ProfileInfoCard = () => {
 						},
 						styles.editAllergiesButton,
 					]}
+					onPress={() => {
+						navigation.navigate("EditAllergies");
+					}}
 				>
 					<Text style={styles.editAllergiesButtonText}>
 						Edit Allergies

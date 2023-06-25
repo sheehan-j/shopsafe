@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import EditAllergiesScreen from "./screens/EditAllergiesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +50,9 @@ export default App = () => {
 					require("./assets/img/scan_icon.png"),
 					require("./assets/img/back_icon.png"),
 					require("./assets/img/profile_picture.jpg"),
+					require("./assets/img/x_icon_gray.png"),
+					require("./assets/img/x_icon_navy.png"),
+					require("./assets/img/plus_icon.png"),
 				]);
 
 				await Promise.all([...imageAssets]);
@@ -91,6 +95,10 @@ export default App = () => {
 						}}
 					/>
 					<Stack.Screen name="Product" component={ProductScreen} />
+					<Stack.Screen
+						name="EditAllergies"
+						component={EditAllergiesScreen}
+					/>
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>

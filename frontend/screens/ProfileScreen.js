@@ -41,7 +41,7 @@ const ProfileScreen = ({ navigation, route }) => {
 			transform: [
 				{
 					translateY:
-						saveMessageAnimation.value * (30 + statusBarHeight),
+						saveMessageAnimation.value * (40 + statusBarHeight),
 				},
 			],
 		};
@@ -113,7 +113,7 @@ const ProfileScreen = ({ navigation, route }) => {
 						paddingVertical: 20,
 					}}
 				>
-					<ProfileInfoCard />
+					<ProfileInfoCard navigation={navigation} />
 				</View>
 
 				{/* <ScrollView

@@ -12,7 +12,12 @@ export default function useStatusBarHeight() {
 	const [value, setValue] = useState(StatusBar.currentHeight || 0);
 
 	useEffect(() => {
-		if (Platform.OS !== "ios") return;
+		if (Platform.OS !== "ios" && Platform.OS !== "android") return;
+
+		if (Platform.OS === "android") {
+			setValue(StatusBar.currentHeight);
+			return;
+		}
 
 		const emitter = new NativeEventEmitter(StatusBarManager);
 
@@ -27,5 +32,6 @@ export default function useStatusBarHeight() {
 		return () => listener.remove();
 	}, []);
 
-	return value + 8;
+	// return Platform.OS === "ios" ? value + 8 : value;
+	return value;
 }
