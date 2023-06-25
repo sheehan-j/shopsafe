@@ -7,15 +7,14 @@ import {
 	TextInput,
 	ScrollView,
 	Keyboard,
+	ActivityIndicator,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
 	useSharedValue,
-	Easing,
 	withTiming,
 	useAnimatedStyle,
-	add,
 } from "react-native-reanimated";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
@@ -37,6 +36,7 @@ const EditAllergiesScreen = ({ navigation }) => {
 	const [changed, setChanged] = useState(false);
 	const [originalAddedCount, setOriginalAddedCount] = useState(0);
 	const [firstProcess, setFirstProcess] = useState(true);
+	const [loading, setLoading] = useState(true);
 
 	// TODO: Change how added ingredients are counted during the process,
 	// Check whether they were already added when retrieving from db
@@ -51,10 +51,12 @@ const EditAllergiesScreen = ({ navigation }) => {
 					element.added = false;
 				});
 
+				// setLoading(false);
 				setIngredients(response.tags);
 				setActiveIngredients(
 					processNewActiveIngredients(response.tags)
 				);
+				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching JSON data:", error);
 			}
@@ -139,6 +141,7 @@ const EditAllergiesScreen = ({ navigation }) => {
 
 	// When user presses "search" button on their keyboard
 	const handleSearch = () => {
+		setLoading(true);
 		// Filter out any "s" that the user possibly added to the end of their search
 		// e.g. If the user searches "eggs", trim it into "egg"
 		let keywords = searchText.split(" ");
@@ -169,6 +172,7 @@ const EditAllergiesScreen = ({ navigation }) => {
 		setSearching(true);
 		setSearchedIngredients(searchResults);
 		setActiveIngredients(processNewActiveIngredients(searchResults));
+		setLoading(false);
 	};
 
 	// Occurs when user presses "plus" icon on an ingredient from the ingredient list
@@ -236,6 +240,7 @@ const EditAllergiesScreen = ({ navigation }) => {
 	// Occurs when the user clicks the "X" icon in the search bar
 	// Reset everything related to search
 	const clearSearch = () => {
+		setLoading(true);
 		setActiveIngredients(
 			processNewActiveIngredients(Array.from(ingredients))
 		);
@@ -243,6 +248,7 @@ const EditAllergiesScreen = ({ navigation }) => {
 		setPage(0);
 		setSearching(false);
 		setSearchText("");
+		setLoading(false);
 		Keyboard.dismiss();
 	};
 
@@ -273,6 +279,14 @@ const EditAllergiesScreen = ({ navigation }) => {
 			opacity: fadeAnim.value,
 		};
 	});
+
+	// Logic for scrolling to top of ScrolLView on page change
+	const scrollViewRef = useRef();
+	const scrollToTop = () => {
+		if (scrollViewRef.current) {
+			scrollViewRef.current.scrollTo({ y: 0, animated: true });
+		}
+	};
 
 	return (
 		<>
@@ -306,12 +320,16 @@ const EditAllergiesScreen = ({ navigation }) => {
 				<View style={styles.searchWrapper}>
 					<View style={styles.searchContainer}>
 						<TextInput
-							style={styles.searchBar}
+							style={{
+								...styles.searchBar,
+								opacity: loading ? 0.2 : 1,
+							}}
 							value={searchText}
 							onChangeText={setSearchText}
 							returnKeyType="search"
 							placeholder="Search by ingredient name"
 							onSubmitEditing={handleSearch}
+							editable={!loading}
 						/>
 
 						{/* CLEAR SEARCH BUTTON */}
@@ -330,41 +348,99 @@ const EditAllergiesScreen = ({ navigation }) => {
 					</View>
 				</View>
 
-				<ScrollView
-					style={styles.ingredientsContainer}
-					showsVerticalScrollIndicator={false}
-				>
+				{loading && (
 					<View
-						style={{ paddingBottom: needsExtraPadding ? 120 : 105 }}
+						style={{
+							flex: 1,
+							justifyContent: "center",
+							alignItems: "center",
+							paddingBottom: needsExtraPadding ? 120 : 105,
+						}}
 					>
-						{/* ADDED INGREDIENTS CONTAINER */}
+						<ActivityIndicator size="small" color={colors.navy} />
+					</View>
+				)}
+
+				{!loading && (
+					<ScrollView
+						style={styles.ingredientsContainer}
+						showsVerticalScrollIndicator={false}
+						ref={scrollViewRef}
+					>
 						<View
 							style={{
-								...styles.addedIngredientsContainer,
-								marginBottom:
-									addedIngredients.length > 0 ? 15 : 20,
+								paddingBottom: needsExtraPadding ? 120 : 105,
 							}}
 						>
-							{addedIngredients.map((element) => {
+							{/* ADDED INGREDIENTS CONTAINER */}
+							<View
+								style={{
+									...styles.addedIngredientsContainer,
+									marginBottom:
+										addedIngredients.length > 0 ? 15 : 20,
+								}}
+							>
+								{addedIngredients.map((element) => {
+									return (
+										<View
+											key={element.id}
+											style={styles.addedIngredient}
+										>
+											<Text
+												style={
+													styles.addedIngredientText
+												}
+											>
+												{element.name}
+											</Text>
+											<Pressable
+												style={
+													styles.deleteIngredientIcon
+												}
+												hitSlop={12}
+												onPress={() =>
+													deleteIngredient(element.id)
+												}
+											>
+												<Image
+													source={require("../assets/img/x_icon_navy.png")}
+													style={{
+														width: "100%",
+														height: "100%",
+													}}
+												/>
+											</Pressable>
+										</View>
+									);
+								})}
+							</View>
+
+							{/* <Text
+							style={{
+								...styles.ingredientsSectionLabel,
+								marginTop: addedIngredients.length > 0 ? 5 : 10,
+							}}
+						>
+							Ingredients
+						</Text> */}
+							{activeIngredients.map((element) => {
 								return (
 									<View
 										key={element.id}
-										style={styles.addedIngredient}
+										style={styles.ingredient}
 									>
-										<Text
-											style={styles.addedIngredientText}
-										>
+										<Text style={styles.ingredientText}>
 											{element.name}
 										</Text>
 										<Pressable
-											style={styles.deleteIngredientIcon}
-											hitSlop={12}
-											onPress={() =>
-												deleteIngredient(element.id)
-											}
+											style={styles.plusIcon}
+											hitSlop={5}
+											onPress={() => {
+												addIngredient(element.id);
+											}}
 										>
 											<Image
-												source={require("../assets/img/x_icon_navy.png")}
+												source={require("../assets/img/plus_icon.png")}
 												style={{
 													width: "100%",
 													height: "100%",
@@ -374,92 +450,64 @@ const EditAllergiesScreen = ({ navigation }) => {
 									</View>
 								);
 							})}
-						</View>
-
-						{/* <Text
-							style={{
-								...styles.ingredientsSectionLabel,
-								marginTop: addedIngredients.length > 0 ? 5 : 10,
-							}}
-						>
-							Ingredients
-						</Text> */}
-						{activeIngredients.map((element) => {
-							return (
-								<View
-									key={element.id}
-									style={styles.ingredient}
+							<View style={styles.paginationContainer}>
+								<Pressable
+									style={{
+										...styles.paginationControl,
+										opacity: page === 0 ? 0 : 1,
+									}}
+									onPress={
+										page === 0
+											? () => {}
+											: () => {
+													setPage(page - 1);
+													scrollToTop();
+											  }
+									}
+									hitSlop={15}
 								>
-									<Text style={styles.ingredientText}>
-										{element.name}
-									</Text>
-									<Pressable
-										style={styles.plusIcon}
-										hitSlop={5}
-										onPress={() => {
-											addIngredient(element.id);
+									<Image
+										source={require("../assets/img/back_icon.png")}
+										style={{
+											...styles.paginationArrow,
+											marginRight: 6,
 										}}
-									>
-										<Image
-											source={require("../assets/img/plus_icon.png")}
-											style={{
-												width: "100%",
-												height: "100%",
-											}}
-										/>
-									</Pressable>
-								</View>
-							);
-						})}
-						<View style={styles.paginationContainer}>
-							<Pressable
-								style={{
-									...styles.paginationControl,
-									opacity: page === 0 ? 0 : 1,
-								}}
-								onPress={
-									page === 0
-										? () => {}
-										: () => setPage(page - 1)
-								}
-							>
-								<Image
-									source={require("../assets/img/back_icon.png")}
+									/>
+									<Text style={styles.paginationControlText}>
+										Previous Page
+									</Text>
+								</Pressable>
+								<Pressable
 									style={{
-										...styles.paginationArrow,
-										marginRight: 6,
+										...styles.paginationControl,
+										opacity: nextPageControlVisible ? 1 : 0,
 									}}
-								/>
-								<Text style={styles.paginationControlText}>
-									Previous Page
-								</Text>
-							</Pressable>
-							<Pressable
-								style={{
-									...styles.paginationControl,
-									opacity: nextPageControlVisible ? 1 : 0,
-								}}
-								onPress={
-									nextPageControlVisible
-										? () => setPage(page + 1)
-										: () => {}
-								}
-							>
-								<Text style={styles.paginationControlText}>
-									Next Page
-								</Text>
-								<Image
-									source={require("../assets/img/back_icon.png")}
-									style={{
-										...styles.paginationArrow,
-										marginLeft: 6,
-										transform: [{ rotate: "180deg" }],
-									}}
-								/>
-							</Pressable>
+									onPress={
+										nextPageControlVisible
+											? () => {
+													setPage(page + 1);
+													scrollToTop();
+											  }
+											: () => {}
+									}
+									hitSlop={15}
+								>
+									<Text style={styles.paginationControlText}>
+										Next Page
+									</Text>
+									<Image
+										source={require("../assets/img/back_icon.png")}
+										style={{
+											...styles.paginationArrow,
+											marginLeft: 6,
+											transform: [{ rotate: "180deg" }],
+										}}
+									/>
+								</Pressable>
+							</View>
 						</View>
-					</View>
-				</ScrollView>
+					</ScrollView>
+				)}
 				<View
 					style={{
 						...styles.submitWrapper,
@@ -600,6 +648,7 @@ const styles = StyleSheet.create({
 	ingredientsContainer: {
 		width: "100%",
 		paddingHorizontal: 25,
+		flex: 1,
 	},
 	ingredientsTitle: {
 		width: "100%",
