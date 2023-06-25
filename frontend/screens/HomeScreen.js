@@ -46,7 +46,10 @@ const HomeScreen = ({ navigation, route }) => {
 	// Resetting data and navigating after product scan
 	const scanModalDismissed = () => {
 		if (product) {
-			navigation.navigate("Product", { product: product });
+			navigation.navigate("Product", {
+				product: product,
+				productLoaded: true,
+			});
 		}
 
 		// Reset these now that the modal has been dismissed

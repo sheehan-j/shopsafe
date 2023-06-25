@@ -7,23 +7,44 @@ import {
 	Image,
 	Platform,
 	ScrollView,
+	ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 
 import CustomStatusBar from "../components/CustomStatusBar";
 import colors from "../config/colors";
 import ProductIngredientsOkay from "../components/ProductIngredientsOkay";
 import ProductIngredientsBad from "../components/ProductIngredientsBad";
+import searchApi from "../api/searchApi";
 
 const ProductScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
+	const [product, setProduct] = useState(null);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const loadProduct = async () => {
+			if (route.params.productLoaded) {
+				setProduct(route.params.product);
+				setLoading(false);
+			} else {
+				const result = await searchApi.search(route.params.barcode);
+				setProduct(result);
+				// setTimeout(() => {
+				setLoading(false);
+				// }, 200);
+			}
+		};
+
+		loadProduct();
+	}, []);
 
 	const processIngredientsIntoComponents = () => {
 		const ingredients = [];
 
-		route.params.product.ingredients.map((ingredient, index) => {
+		product.ingredients.map((ingredient, index) => {
 			if (!ingredient.avoid) {
 				ingredients.push(
 					<View key={index} style={styles.ingredient}>
@@ -55,30 +76,17 @@ const ProductScreen = ({ navigation, route }) => {
 			<StatusBar style={"dark"} />
 			<View style={styles.container}>
 				<CustomStatusBar color={colors.appBackground} border={true} />
-				<ScrollView
-					style={{
-						width: "100%",
-						// paddingTop:
-						// 	Platform.OS === "android"
-						// 		? StatusBar.currentHeight + 10
-						// 		: statusBarHeight + 10,
-						paddingTop: statusBarHeight + 10,
-					}}
-					showsVerticalScrollIndicator={false}
-					showsHorizontalScrollIndicator={false}
-				>
-					{/* Wrapper View to Padding to Compensate for Status Bar Padding */}
+				{loading && (
 					<View
 						style={{
 							flex: 1,
-							// paddingBottom:
-							// 	Platform.OS === "android"
-							// 		? StatusBar.currentHeight * 2
-							// 		: statusBarHeight * 2,
+							// backgroundColor: "red",
+							justifyContent: "flex-start",
+							alignItems: "center",
+							paddingTop: statusBarHeight + 10,
 							paddingBottom: statusBarHeight * 2,
 						}}
 					>
-						{/* BACK NAVIGATION ICON */}
 						<View style={styles.backIconContainer}>
 							<Pressable
 								style={styles.backIcon}
@@ -90,42 +98,74 @@ const ProductScreen = ({ navigation, route }) => {
 								></Image>
 							</Pressable>
 						</View>
-
-						{/* PRODUCT IMAGE */}
-						<View style={styles.productImageContainer}>
-							<Image
-								source={{ uri: route.params.product.image_url }}
-								style={styles.productImage}
+						<View
+							style={{
+								flex: 1,
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+						>
+							<ActivityIndicator
+								size="small"
+								color={colors.navy}
 							/>
 						</View>
-
-						{/* PRODUCT BRAND */}
-						{route.params.product.brands && (
-							<Text style={styles.brand}>
-								{route.params.product.brands.toUpperCase()}
-							</Text>
-						)}
-						{/* PRODUCT TITLE */}
-						<Text style={styles.title}>
-							{route.params.product.name}
-						</Text>
-
-						{route.params.product.avoid && (
-							<ProductIngredientsBad />
-						)}
-						{!route.params.product.avoid && (
-							<ProductIngredientsOkay />
-						)}
-
-						{/* INGREDIENTS */}
-						<View style={styles.ingredientsContainer}>
-							<Text style={styles.ingredientsTitle}>
-								Ingredients
-							</Text>
-							{processIngredientsIntoComponents()}
-						</View>
 					</View>
-				</ScrollView>
+				)}
+
+				{!loading && (
+					<ScrollView
+						style={{
+							width: "100%",
+							flex: 1,
+							paddingTop: statusBarHeight + 10,
+						}}
+						showsVerticalScrollIndicator={false}
+						showsHorizontalScrollIndicator={false}
+					>
+						{/* Wrapper View to Padding to Compensate for Status Bar Padding */}
+						<View
+							style={{
+								flex: 1,
+								paddingBottom: statusBarHeight * 2,
+							}}
+						>
+							{/* BACK NAVIGATION ICON */}
+							<View style={styles.backIconContainer}>
+								<Pressable
+									style={styles.backIcon}
+									onPress={() => navigation.pop()}
+								>
+									<Image
+										source={require("../assets/img/back_icon.png")}
+										style={styles.backIconImg}
+									></Image>
+								</Pressable>
+							</View>
+
+							<View style={styles.productImageContainer}>
+								<Image
+									source={{ uri: product.image_url }}
+									style={styles.productImage}
+								/>
+							</View>
+							{product.brands && (
+								<Text style={styles.brand}>
+									{product.brands.toUpperCase()}
+								</Text>
+							)}
+							<Text style={styles.title}>{product.name}</Text>
+							{product.avoid && <ProductIngredientsBad />}
+							{!product.avoid && <ProductIngredientsOkay />}
+							<View style={styles.ingredientsContainer}>
+								<Text style={styles.ingredientsTitle}>
+									Ingredients
+								</Text>
+								{processIngredientsIntoComponents()}
+							</View>
+						</View>
+					</ScrollView>
+				)}
 			</View>
 		</>
 	);

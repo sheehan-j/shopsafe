@@ -13,9 +13,12 @@ const ProductListing = ({
 	onSaveButtonPressed,
 }) => {
 	const onPress = async () => {
-		const result = await searchApi.search(barcode);
-		setProduct(result);
-		navigation.navigate("Product", { product: result });
+		// const result = await searchApi.search(barcode);
+		// setProduct(result);
+		navigation.navigate("Product", {
+			barcode: barcode,
+			productLoaded: false,
+		});
 	};
 
 	return (
