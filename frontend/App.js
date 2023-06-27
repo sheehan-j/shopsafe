@@ -9,6 +9,7 @@ import ProductScreen from "./screens/ProductScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import EditAllergiesScreen from "./screens/EditAllergiesScreen";
 import LoginScreen from "./screens/LoginScreen";
+import SignupScreen from "./screens/SignupScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -81,13 +82,8 @@ export default App = () => {
 						headerShown: false,
 					}}
 				>
-					<Stack.Screen
-						name="Login"
-						component={LoginScreen}
-						// options={{
-						// 	animation: "none",
-						// }}
-					/>
+					{/* <Stack.Screen name="Login" component={LoginScreen} /> */}
+					<Stack.Screen name="Signup" component={SignupScreen} />
 					<Stack.Screen
 						name="Home"
 						component={HomeScreen}
