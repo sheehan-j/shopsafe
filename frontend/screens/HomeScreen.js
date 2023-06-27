@@ -132,7 +132,10 @@ const HomeScreen = ({ navigation, route }) => {
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
-					<ProductSavedMessage />
+					<ProductSavedMessage
+						fontColor={colors.navy}
+						bgColor={"white"}
+					/>
 				</Animated.View>
 				{/* <CustomStatusBar color={colors.headerGreen} border={false} /> */}
 				<HomeScreenHeader name={"Jordan"} />
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
 		width: "100%",
 		fontFamily: "Inter-Bold",
 		textAlign: "left",
-		fontSize: 28,
+		fontSize: 24,
 		color: colors.navy,
 		marginBottom: 10,
 		paddingHorizontal: 25,
@@ -223,7 +226,7 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		position: "absolute",
 		top: -32, // Hide based on fixed height of the message
-		zIndex: 97,
+		zIndex: 100,
 	},
 });
 

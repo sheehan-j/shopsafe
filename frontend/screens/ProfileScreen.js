@@ -1,4 +1,11 @@
-import { StyleSheet, View, ScrollView, Text } from "react-native";
+import {
+	StyleSheet,
+	View,
+	ScrollView,
+	Text,
+	Dimensions,
+	Pressable,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
@@ -7,6 +14,7 @@ import Animated, {
 	withTiming,
 	Easing,
 } from "react-native-reanimated";
+import { PanGestureHandler } from "react-native-gesture-handler";
 
 import colors from "../config/colors";
 import CustomStatusBar from "../components/CustomStatusBar";
@@ -16,10 +24,24 @@ import ProductSavedMessage from "../components/ProductSavedMessage";
 import ProfileInfoCard from "../components/ProfileInfoCard";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
+import { useAppStore } from "../util/store";
 
 const ProfileScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
+	const screenWidth = Dimensions.get("window").width;
+	const translateMenu = useSharedValue(0);
+	const translateMenuIndicator = useSharedValue(0);
+	const [activePage, setActivePage] = useState("saved");
+	const recentScans = useAppStore((state) => state.recentScans);
+	const [allergies, setAllergies] = useState([
+		{
+			name: "test1",
+		},
+		{
+			name: "test2",
+		},
+	]);
 
 	// Handle save message eanimation
 	const onSaveButtonPressed = () => {
@@ -65,7 +87,7 @@ const ProfileScreen = ({ navigation, route }) => {
 						barcode={item1.barcode}
 						avoid={item1.avoid}
 						saved={item1.saved}
-						setProduct={setProduct}
+						// setProduct={setProduct}
 						navigation={navigation}
 						onSaveButtonPressed={onSaveButtonPressed}
 					/>
@@ -76,7 +98,7 @@ const ProfileScreen = ({ navigation, route }) => {
 							barcode={item2.barcode}
 							avoid={item2.avoid}
 							saved={item2.saved}
-							setProduct={setProduct}
+							// setProduct={setProduct}
 							navigation={navigation}
 							onSaveButtonPressed={onSaveButtonPressed}
 						/>
@@ -86,6 +108,39 @@ const ProfileScreen = ({ navigation, route }) => {
 		}
 
 		return rows;
+	};
+
+	const animatedMenuStyle = useAnimatedStyle(() => ({
+		transform: [{ translateX: translateMenu.value }],
+	}));
+
+	const animatedMenuIndicatorStyle = useAnimatedStyle(() => ({
+		transform: [{ translateX: translateMenuIndicator.value }],
+	}));
+
+	const setSavedActive = () => {
+		setActivePage("saved");
+		translateMenu.value = withTiming(0, { duration: 300 });
+		translateMenuIndicator.value = withTiming(0, {
+			duration: 300,
+		});
+	};
+
+	const setAllergiesActive = () => {
+		setActivePage("allergies");
+		translateMenu.value = withTiming(-screenWidth, { duration: 300 });
+		translateMenuIndicator.value = withTiming(screenWidth / 2, {
+			duration: 300,
+		});
+	};
+
+	const handleSwipe = (event) => {
+		// Swipe right, change to saved page
+		if (event.nativeEvent.translationX > 0) {
+			if (activePage !== "saved") setSavedActive();
+		} else {
+			if (activePage !== "allergies") setAllergiesActive();
+		}
 	};
 
 	return (
@@ -101,38 +156,108 @@ const ProfileScreen = ({ navigation, route }) => {
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
-					<ProductSavedMessage />
+					<ProductSavedMessage
+						fontColor={"white"}
+						bgColor={colors.green}
+					/>
 				</Animated.View>
 
 				<CustomStatusBar color={"white"} border={false} />
 
-				<View
-					style={{
-						width: "100%",
-						backgroundColor: "white",
-						paddingVertical: 20,
-					}}
-				>
-					<ProfileInfoCard navigation={navigation} />
-				</View>
-
-				{/* <ScrollView
-					style={{
-						width: "100%",
-						// paddingTop: statusBarHeight + 30,
-					}}
+				<ScrollView
+					style={{ flex: 1, backgroundColor: "white" }}
 					showsVerticalScrollIndicator={false}
-					showsHorizontalScrollIndicator={false}
 				>
 					<View
 						style={{
-							flex: 1,
-							paddingBottom: 160, // Accounting for navbar
+							width: "100%",
+							backgroundColor: "white",
+							paddingTop: 20,
 						}}
 					>
-						<Text style={styles.sectionHeader}>???</Text>
+						<ProfileInfoCard navigation={navigation} />
+						<View style={styles.menuControlsContainer}>
+							<Pressable
+								style={styles.menuControl}
+								onPress={
+									activePage !== "saved"
+										? setSavedActive
+										: () => {}
+								}
+							>
+								<Text style={styles.menuControlText}>
+									Saved
+								</Text>
+							</Pressable>
+							<Pressable
+								style={styles.menuControl}
+								onPress={
+									activePage !== "allergies"
+										? setAllergiesActive
+										: () => {}
+								}
+							>
+								<Text style={styles.menuControlText}>
+									Allergies
+								</Text>
+							</Pressable>
+							<Animated.View
+								style={[
+									styles.activeMenuIndicator,
+									animatedMenuIndicatorStyle,
+								]}
+							/>
+						</View>
 					</View>
-				</ScrollView> */}
+
+					<PanGestureHandler
+						onGestureEvent={handleSwipe}
+						activeOffsetX={[-50, 50]}
+					>
+						<Animated.View
+							style={[
+								{
+									flex: 1,
+									flexDirection: "row",
+								},
+								animatedMenuStyle,
+							]}
+						>
+							{/* SAVED SECTION */}
+							<View style={styles.menuContainer}>
+								<Text style={styles.sectionHeader}>
+									Saved Products
+								</Text>
+								<View style={styles.recentScansContainer}>
+									{renderRecentScans()}
+								</View>
+							</View>
+							<View
+								style={{
+									...styles.menuContainer,
+									paddingHorizontal: 25,
+								}}
+							>
+								<Text style={styles.sectionHeader}>
+									Jordan's Allergies
+								</Text>
+								{allergies.map((allergy, index) => {
+									return (
+										<View
+											key={index}
+											style={styles.ingredient}
+										>
+											<Text style={styles.ingredientText}>
+												{allergy.name}
+											</Text>
+										</View>
+									);
+								})}
+							</View>
+						</Animated.View>
+					</PanGestureHandler>
+				</ScrollView>
+
 				{/* NAVBAR */}
 				<Navbar navigation={navigation} currScreen={"Profile"} />
 			</View>
@@ -149,14 +274,12 @@ const styles = StyleSheet.create({
 		width: "100%",
 		fontFamily: "Inter-Bold",
 		textAlign: "left",
-		fontSize: 28,
+		fontSize: 24,
 		color: colors.navy,
 		marginBottom: 10,
-		paddingHorizontal: 25,
 	},
 	recentScansContainer: {
 		width: "100%",
-		paddingHorizontal: 25,
 	},
 	recentScansRow: {
 		flexDirection: "row",
@@ -171,6 +294,68 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		top: -32, // Hide based on fixed height of the message
 		zIndex: 97,
+	},
+	menuControlsContainer: {
+		width: "100%",
+		marginTop: 10,
+		flexDirection: "row",
+		paddingVertical: 10,
+	},
+	menuControl: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	menuControlText: {
+		fontFamily: "Inter-Medium",
+		fontSize: 16,
+		color: colors.navy,
+	},
+	activeMenuIndicator: {
+		backgroundColor: colors.navy,
+		position: "absolute",
+		left: 0,
+		bottom: 0,
+		width: "50%",
+		height: 1.5,
+	},
+	recentScansContainer: {
+		width: "100%",
+	},
+	recentScansRow: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		width: "100%",
+		marginBottom: 10,
+	},
+	menuContainer: {
+		width: "100%",
+		paddingBottom: 160, // Accounting for navbar
+		backgroundColor: colors.appBackground,
+		paddingTop: 25,
+		paddingHorizontal: 25,
+	},
+	ingredient: {
+		width: "100%",
+		backgroundColor: "white",
+		borderRadius: 8,
+		paddingHorizontal: 15,
+		paddingVertical: 10,
+		shadowColor: "#888888",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.03,
+		shadowRadius: 1.5,
+		marginBottom: 7,
+	},
+	ingredientText: {
+		width: "100%",
+		textAlign: "left",
+		fontSize: 18,
+		color: colors.navy,
+		fontFamily: "Inter-Medium",
 	},
 });
 

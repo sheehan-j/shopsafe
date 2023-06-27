@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 import colors from "../config/colors";
 
-const ProductSavedMessage = () => {
+const ProductSavedMessage = ({ bgColor, fontColor }) => {
 	return (
-		<View style={styles.container}>
-			<Text style={styles.text}>Product save status updated.</Text>
+		<View style={{ ...styles.container, backgroundColor: bgColor }}>
+			<Text style={{ ...styles.text, color: fontColor }}>
+				Product save status updated.
+			</Text>
 		</View>
 	);
 };
@@ -16,7 +18,6 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		width: "90%",
 		padding: 5,
-		backgroundColor: "white",
 		borderRadius: 20,
 		height: 30,
 		justifyContent: "center",
@@ -25,6 +26,5 @@ const styles = StyleSheet.create({
 	text: {
 		fontFamily: "Inter",
 		fontSize: 16,
-		color: colors.navy,
 	},
 });
