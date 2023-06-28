@@ -20,15 +20,15 @@ import Animated, {
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
 import useExtraPadding from "../util/useExtraPadding";
+import { useAppStore } from "../util/store";
 
-const EditAllergiesScreen = ({ navigation }) => {
+const EditAllergiesScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const needsExtraPadding = useExtraPadding();
 	const pageSize = 30;
 	const [ingredients, setIngredients] = useState([]); // ALL ingredients
 	const [activeIngredients, setActiveIngredients] = useState([]); // Ingredinents being displayed
 	const [addedIngredients, setAddedIngredients] = useState([]); // Ingredients added by the user
-	const [addedIngredientsIndices, setAddedIngredientsIndices] = useState([]);
 	const [searchedIngredients, setSearchedIngredients] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	const [searching, setSearching] = useState(false); // Whether or not results are currently being filtered with a search term
@@ -37,7 +37,11 @@ const EditAllergiesScreen = ({ navigation }) => {
 	const [originalAddedCount, setOriginalAddedCount] = useState(0);
 	const [firstProcess, setFirstProcess] = useState(true);
 	const [loading, setLoading] = useState(true);
-
+	// Track setup ingredients in case the user switches between setup screens
+	const { setupIngredients, setSetupIngredients } = useAppStore((state) => ({
+		setupIngredients: state.setupIngredients,
+		setSetupIngredients: state.setSetupIngredients,
+	}));
 	// TODO: Change how added ingredients are counted during the process,
 	// Check whether they were already added when retrieving from db
 
@@ -45,17 +49,32 @@ const EditAllergiesScreen = ({ navigation }) => {
 	useEffect(() => {
 		const loadIngredients = async () => {
 			try {
+				// Get added ingredients
+				let existingAddedIngredients;
+				if (route.params?.firstTimeSetup) {
+					existingAddedIngredients = setupIngredients;
+					setOriginalAddedCount(existingAddedIngredients.length);
+				} else {
+					// TODO: ADD FETCH TO DB
+					existingAddedIngredients = [];
+					setOriginalAddedCount(0);
+				}
+				setAddedIngredients(existingAddedIngredients);
+
+				// Process existing added ingredient's indices
 				const response = require("../assets/test.json");
-				// Map the ingredients from the response and add an "added" field
-				response.tags.forEach((element) => {
-					element.added = false;
+				response.tags.forEach((element, index) => {
+					element.added = false; // TODO: REMOVE THIS WHEN DB IS SETUP
+					if (existingAddedIngredients.includes(element)) {
+						element.added = true;
+					}
 				});
 
-				// setLoading(false);
 				setIngredients(response.tags);
 				setActiveIngredients(
 					processNewActiveIngredients(response.tags)
 				);
+				setFirstProcess(false);
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching JSON data:", error);
@@ -89,52 +108,18 @@ const EditAllergiesScreen = ({ navigation }) => {
 	}, [page]);
 
 	// Process the ingredients to be displayed on the screen
-	const processNewActiveIngredients = (
-		newIngredients,
-		addedIndices = null
-	) => {
-		let skips = 0; // Tracks how many ingredients should be skipped when determing what should be displayed
-		let ingredientIndex = pageSize * page; // Starting point in the list for the current page
-
-		// Check through the indices of the ingredients that have been added
-		// If the index is before the starting index for the current page, add a skip to account
-		// for the shift of ingredients to fill the space missing from the added ingredient
-		// The if statement here is if we are passing in an addedIndices array because the state
-		// of addedIngredientIndiecs is being updated
-		if (addedIndices) {
-			addedIndices.forEach((element) => {
-				if (element <= ingredientIndex) skips++;
-			});
-		} else {
-			addedIngredientsIndices.forEach((element) => {
-				if (element <= ingredientIndex) skips++;
-			});
-		}
-		ingredientIndex += skips;
-
+	const processNewActiveIngredients = (newIngredients) => {
 		// Run through the list of ingredients and add them, skipping if they are already added
 		// and running until a page size worth of ingredients are aded
 		const ingredientsToBeActive = [];
-		let addedCount = 0; // Track how many ingredients
+		let ingredientIndex = pageSize * page;
 		while (
 			ingredientsToBeActive.length < pageSize &&
 			ingredientIndex < newIngredients.length
 		) {
 			// If this ingreident has already been added by the user, skip adding it to active ingreidnets
-			if (newIngredients[ingredientIndex].added) {
-				ingredientIndex++;
-				addedCount++;
-				continue;
-			}
-
 			ingredientsToBeActive.push(newIngredients[ingredientIndex]);
 			ingredientIndex++;
-		}
-
-		// If this is the first time processing the ingredients, update the originalAddedCount
-		if (firstProcess) {
-			setOriginalAddedCount(addedCount);
-			setFirstProcess(false);
 		}
 		return ingredientsToBeActive;
 	};
@@ -191,15 +176,13 @@ const EditAllergiesScreen = ({ navigation }) => {
 
 		// Update states
 		setIngredients(newIngredients);
-		setAddedIngredientsIndices([...addedIngredientsIndices, i]);
 		setAddedIngredients([...addedIngredients, targetIngredient]);
 		// Pass the new version of added ingredients to processNewActiveIngredients
 		// so it can skip over the newly added ingredient without waiting for
 		// addedIngredients state ot update
 		setActiveIngredients(
 			processNewActiveIngredients(
-				searching ? searchedIngredients : newIngredients,
-				[...addedIngredientsIndices, i]
+				searching ? searchedIngredients : newIngredients
 			)
 		);
 	};
@@ -222,17 +205,12 @@ const EditAllergiesScreen = ({ navigation }) => {
 		const newAddedIngredients = addedIngredients.filter(
 			(element) => element.id !== id
 		);
-		const newAddedIngredientsIndices = addedIngredientsIndices.filter(
-			(index) => index !== i
-		);
 
 		// Update all states
 		setAddedIngredients(newAddedIngredients);
-		setAddedIngredientsIndices(newAddedIngredientsIndices);
 		setActiveIngredients(
 			processNewActiveIngredients(
-				searching ? searchedIngredients : newIngredients,
-				newAddedIngredientsIndices
+				searching ? searchedIngredients : newIngredients
 			)
 		);
 	};
@@ -250,6 +228,13 @@ const EditAllergiesScreen = ({ navigation }) => {
 		setSearchText("");
 		setLoading(false);
 		Keyboard.dismiss();
+	};
+
+	const handleSubmit = () => {
+		if (route.params?.firstTimeSetup) {
+			setSetupIngredients(addedIngredients);
+			navigation.navigate("AllergiesSetupMessage");
+		}
 	};
 
 	// Determine whether there are enough remaining ingredients to
@@ -435,12 +420,26 @@ const EditAllergiesScreen = ({ navigation }) => {
 										<Pressable
 											style={styles.plusIcon}
 											hitSlop={5}
-											onPress={() => {
-												addIngredient(element.id);
-											}}
+											onPress={
+												element.added
+													? () => {
+															deleteIngredient(
+																element.id
+															);
+													  }
+													: () => {
+															addIngredient(
+																element.id
+															);
+													  }
+											}
 										>
 											<Image
-												source={require("../assets/img/plus_icon.png")}
+												source={
+													element.added
+														? require("../assets/img/x_icon_gray_small.png")
+														: require("../assets/img/plus_icon.png")
+												}
 												style={{
 													width: "100%",
 													height: "100%",
@@ -514,7 +513,13 @@ const EditAllergiesScreen = ({ navigation }) => {
 						paddingBottom: needsExtraPadding ? 32 : 13,
 					}}
 				>
-					<Animated.View style={animatedOpacity}>
+					<Animated.View
+						style={
+							route.params?.firstTimeSetup
+								? null
+								: animatedOpacity
+						}
+					>
 						<Pressable
 							style={({ pressed }) => [
 								{
@@ -524,10 +529,12 @@ const EditAllergiesScreen = ({ navigation }) => {
 								},
 								styles.submitChangesButton,
 							]}
-							onPress={() => {}}
+							onPress={handleSubmit}
 						>
 							<Text style={styles.submitChangesButtonText}>
-								Submit Changes
+								{route.params?.firstTimeSetup
+									? "Submit"
+									: "Submit Changes"}
 							</Text>
 						</Pressable>
 					</Animated.View>
