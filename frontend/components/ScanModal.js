@@ -1,11 +1,20 @@
-import { SafeAreaView, StyleSheet, View, Text, Pressable } from "react-native";
-import Modal from "react-native-modal";
+import {
+	SafeAreaView,
+	StyleSheet,
+	View,
+	Text,
+	Pressable,
+	Platform,
+} from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
+import { Camera } from "expo-camera";
 import { useState, useEffect, useRef } from "react";
+import { Dimensions } from "react-native";
+import { useAppStore } from "../util/store";
+import Modal from "react-native-modal";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
 import ProductNotFoundModal from "./ProductNotFoundModal";
-import { useAppStore } from "../util/store";
 
 const ScanModal = ({
 	product,
@@ -17,12 +26,26 @@ const ScanModal = ({
 	setProductNotFound,
 }) => {
 	const addRecentScan = useAppStore((state) => state.addRecentScan);
-
+	const { height } = Dimensions.get("window");
+	const [aspectRatio, setAspectRatio] = useState(null);
+	const cameraRef = useRef(null);
 	const [hasPermission, setHasPermission] = useState(false);
+	const [permission, requestPermission] = Camera.useCameraPermissions(); // For android
 	// Have a separate state for modal visibility from productNotFound
 	// productNotFound signals the textbox to change, this signals modal visibility
 	const [productNotFoundModalVisible, setProductNotFoundModalVisible] =
 		useState(false);
+
+	const getAspectRatio = async () => {
+		if (cameraRef.current && Platform.OS !== "ios") {
+			const ratios = await cameraRef.current.getSupportedRatiosAsync();
+			if (ratios.includes("16:9")) {
+				setAspectRatio("16:9");
+			} else {
+				setAspectRatio("4:3");
+			}
+		}
+	};
 
 	// Handle order of setting state variables for productNotFound modal
 	// If productNotFoundModalVisible has been set false and productNotFound is still true,
@@ -41,7 +64,7 @@ const ScanModal = ({
 		})();
 	}, []);
 
-	if (!hasPermission) {
+	if (!hasPermission || !permission || !permission.granted) {
 		return (
 			<View>
 				<Text>Grant camera permissions to this app.</Text>
@@ -73,8 +96,9 @@ const ScanModal = ({
 	};
 
 	return (
-		<View style={{ flex: 1 }}>
-			<SafeAreaView style={styles.container}>
+		<View style={{ ...styles.container, height: height }}>
+			{/* <SafeAreaView style={styles.container}> */}
+			{Platform.OS === "ios" && (
 				<BarCodeScanner
 					style={StyleSheet.absoluteFillObject}
 					onBarCodeScanned={
@@ -87,48 +111,64 @@ const ScanModal = ({
 						BarCodeScanner.Constants.BarCodeType.ean13,
 					]}
 				/>
-				<View style={styles.footer}>
-					<View style={styles.smallRoundedRect} />
-					<View
+			)}
+			{Platform.OS !== "ios" && (
+				<Camera
+					style={StyleSheet.absoluteFillObject}
+					useCamera2Api={true}
+					ratio={aspectRatio}
+					ref={cameraRef}
+					onCameraReady={getAspectRatio}
+					onBarCodeScanned={
+						scanned ? undefined : handleBarCodeScanned
+					}
+					barCodeTypes={[
+						BarCodeScanner.Constants.BarCodeType.ean13,
+						BarCodeScanner.Constants.BarCodeType.ean8,
+						BarCodeScanner.Constants.BarCodeType.upc_e,
+						BarCodeScanner.Constants.BarCodeType.ean13,
+					]}
+				/>
+			)}
+			<View style={styles.footer}>
+				<View style={styles.smallRoundedRect} />
+				<View
+					style={{
+						...styles.searchingMessageContainer,
+						backgroundColor:
+							(!product && !productNotFound) ||
+							(product && !productNotFound)
+								? colors.transGreen
+								: colors.transRed,
+					}}
+				>
+					<Text
 						style={{
-							...styles.searchingMessageContainer,
-							backgroundColor:
-								(!product && !productNotFound) ||
-								(product && !productNotFound)
-									? colors.transGreen
-									: colors.transRed,
+							...styles.searchingMessageText,
+							color: productNotFound ? colors.red : colors.green,
 						}}
 					>
-						<Text
-							style={{
-								...styles.searchingMessageText,
-								color: productNotFound
-									? colors.red
-									: colors.green,
-							}}
-						>
-							{!product && !productNotFound && "Searching..."}
-							{product && !productNotFound && "Barcode detected"}
-							{productNotFound && "Product not found"}
-						</Text>
-					</View>
-					<Pressable
-						style={({ pressed }) => [
-							{
-								backgroundColor: pressed
-									? colors.transGrayPressed
-									: colors.transGray,
-							},
-							styles.cancelButton,
-						]}
-						onPressOut={() => {
-							setScanModalVisible(false);
-						}}
-					>
-						<Text style={styles.cancelButtonText}>Cancel</Text>
-					</Pressable>
+						{!product && !productNotFound && "Searching..."}
+						{product && !productNotFound && "Barcode detected"}
+						{productNotFound && "Product not found"}
+					</Text>
 				</View>
-			</SafeAreaView>
+				<Pressable
+					style={({ pressed }) => [
+						{
+							backgroundColor: pressed
+								? colors.transGrayPressed
+								: colors.transGray,
+						},
+						styles.cancelButton,
+					]}
+					onPressOut={() => {
+						setScanModalVisible(false);
+					}}
+				>
+					<Text style={styles.cancelButtonText}>Cancel</Text>
+				</Pressable>
+			</View>
 			<Modal
 				animationIn={"fadeIn"}
 				animationOut={"fadeOut"}
@@ -158,9 +198,10 @@ const ScanModal = ({
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		// aspectRatio: 1,
 		justifyContent: "center",
 		alignContent: "center",
-		backgroundColor: "white",
+		backgroundColor: "red",
 		zIndex: 97,
 	},
 	modal_background: {
