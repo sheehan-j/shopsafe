@@ -28,13 +28,13 @@ const ProductScreen = ({ navigation, route }) => {
 		const loadProduct = async () => {
 			if (route.params.productLoaded) {
 				setProduct(route.params.product);
-				setLoading(false);
+				setLoading(false); // TODO: uncomment;
 			} else {
 				const result = await searchApi.search(route.params.barcode);
 				setProduct(result);
-				// setTimeout(() => {
-				setLoading(false);
-				// }, 200);
+				setTimeout(() => {
+					setLoading(false); // TODO: uncomment;
+				}, 1000);
 			}
 		};
 
@@ -76,43 +76,6 @@ const ProductScreen = ({ navigation, route }) => {
 			<StatusBar style={"dark"} />
 			<View style={styles.container}>
 				<CustomStatusBar color={colors.appBackground} border={true} />
-				{loading && (
-					<View
-						style={{
-							flex: 1,
-							// backgroundColor: "red",
-							justifyContent: "flex-start",
-							alignItems: "center",
-							paddingTop: statusBarHeight + 10,
-							paddingBottom: statusBarHeight * 2,
-						}}
-					>
-						<View style={styles.backIconContainer}>
-							<Pressable
-								style={styles.backIcon}
-								onPress={() => navigation.pop()}
-							>
-								<Image
-									source={require("../assets/img/back_icon.png")}
-									style={styles.backIconImg}
-								></Image>
-							</Pressable>
-						</View>
-						<View
-							style={{
-								flex: 1,
-								justifyContent: "center",
-								alignItems: "center",
-							}}
-						>
-							<ActivityIndicator
-								size="small"
-								color={colors.navy}
-							/>
-						</View>
-					</View>
-				)}
-
 				{!loading && (
 					<ScrollView
 						style={{
@@ -165,6 +128,69 @@ const ProductScreen = ({ navigation, route }) => {
 							</View>
 						</View>
 					</ScrollView>
+				)}
+
+				{loading && (
+					<>
+						<View
+							style={{
+								position: "absolute",
+								width: "100%",
+								height: "100%",
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+						>
+							<ActivityIndicator
+								size="small"
+								color={colors.navy}
+							/>
+						</View>
+						<View
+							style={{
+								flex: 1,
+								justifyContent: "flex-start",
+								alignItems: "center",
+								paddingTop: statusBarHeight + 10,
+								paddingBottom: statusBarHeight * 2,
+							}}
+						>
+							<View style={styles.backIconContainer}>
+								<Pressable
+									style={styles.backIcon}
+									onPress={() => navigation.pop()}
+								>
+									<Image
+										source={require("../assets/img/back_icon.png")}
+										style={styles.backIconImg}
+									></Image>
+								</Pressable>
+							</View>
+
+							<View style={styles.skeletonImageContainer}>
+								<View style={styles.skeletonImage} />
+							</View>
+							<View style={styles.skeletonTitleContainer}>
+								<View style={styles.skeletonBrand} />
+								<View style={styles.skeletonTitle} />
+							</View>
+							<View
+								style={styles.skeletonIngredientResultContainer}
+							>
+								<View style={styles.skeletonIngredientResult} />
+							</View>
+							<View style={styles.ingredientsContainer}>
+								<View style={styles.skeletonIngredientsTitle} />
+								<View style={styles.skeletonIngredient} />
+								<View style={styles.skeletonIngredient} />
+								<View style={styles.skeletonIngredient} />
+							</View>
+						</View>
+					</>
 				)}
 			</View>
 		</>
@@ -278,6 +304,63 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: colors.red,
 		fontFamily: "Inter-Medium",
+	},
+	skeletonImageContainer: {
+		width: "100%",
+		marginTop: 10,
+		paddingHorizontal: 35,
+	},
+	skeletonImage: {
+		width: "100%",
+		aspectRatio: 1,
+		backgroundColor: colors.transGray,
+		borderRadius: 10,
+		marginBottom: 15,
+	},
+	skeletonTitleContainer: {
+		width: "100%",
+		paddingHorizontal: 30,
+	},
+	skeletonBrand: {
+		width: "50%",
+		height: 18,
+		backgroundColor: colors.transGray,
+		borderRadius: 6,
+		marginBottom: 10,
+	},
+	skeletonTitle: {
+		width: "60%",
+		height: 34,
+		backgroundColor: colors.transGray,
+		borderRadius: 6,
+	},
+	skeletonIngredientResultContainer: {
+		paddingLeft: 30,
+		paddingRight: 30,
+		marginTop: 20,
+		marginBottom: 20,
+		width: "100%",
+	},
+	skeletonIngredientResult: {
+		width: "100%",
+		borderRadius: 10,
+		backgroundColor: colors.transGray,
+		marginBottom: 15,
+		height: 60,
+	},
+	skeletonIngredientsTitle: {
+		width: "50%",
+		backgroundColor: colors.transGray,
+		height: 28,
+		marginBottom: 10,
+		borderRadius: 6,
+	},
+	skeletonIngredient: {
+		width: "100%",
+		backgroundColor: colors.transGray,
+		height: 28,
+		marginBottom: 7,
+		borderRadius: 8,
 	},
 });
 
