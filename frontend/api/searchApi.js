@@ -32,7 +32,7 @@ exports.search = async (barcode) => {
 	const result = await response.json();
 	console.log("Result received from OpenFood.");
 
-	if (result.status == 1) {
+	if (result.status == 1 && result?.product?.ingredients) {
 		// Compare product ingredients against user allergies
 		const processedIngredients = processIngredients(
 			testAllergies,
