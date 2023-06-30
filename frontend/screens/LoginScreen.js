@@ -11,16 +11,47 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect } from "react";
 import colors from "../config/colors";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { FIREBASE_AUTH } from "../firebaseConfig";
 
 const LoginScreen = ({ navigation }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [focused, setFocused] = useState("");
-	const [error, setError] = useState(false);
+	const [error, setError] = useState(null);
+	const [loading, setLoading] = useState(false);
 
 	const clearFocus = () => {
 		setFocused("");
 		Keyboard.dismiss();
+	};
+
+	const handleLogin = async () => {
+		// Clear any existing errors
+		setError(null);
+
+		// Validate input
+		if (email == "" || password == "") {
+			setError("Error: All fields are required.");
+			return;
+		}
+
+		// If input is valid, attempt login with firebase
+		try {
+			setLoading(true);
+			await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+		} catch (e) {
+			if (
+				e.code === "auth/invalid-email" ||
+				e.code === "auth/wrong-password"
+			) {
+				setError("Error: Invalid email or password.");
+			} else {
+				setError(`Unexpected error: ${e.code}`);
+			}
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -106,7 +137,7 @@ const LoginScreen = ({ navigation }) => {
 								display: error ? "flex" : "none",
 							}}
 						>
-							Email or password is invalid.
+							{error}
 						</Text>
 					</View>
 
@@ -117,16 +148,19 @@ const LoginScreen = ({ navigation }) => {
 								backgroundColor: pressed
 									? colors.greenPressed
 									: colors.green,
+								opacity: loading ? 0.5 : 1,
 							},
 							styles.loginButton,
 						]}
-						onPress={() => {}}
+						onPress={!loading && handleLogin}
 					>
 						<Text style={styles.loginButtonText}>Login</Text>
 					</Pressable>
 					<Pressable
 						style={styles.signUpLink}
-						onPress={() => navigation.navigate("Signup")}
+						onPress={
+							!loading && (() => navigation.navigate("Signup"))
+						}
 					>
 						<Text style={styles.signUpLinkText}>
 							Don't have an account?{" "}
