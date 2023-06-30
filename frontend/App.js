@@ -81,11 +81,14 @@ export default App = () => {
 	}, []);
 
 	useEffect(() => {
-		onAuthStateChanged(FIREBASE_AUTH, (user) => {
-			console.log(user);
+		onAuthStateChanged(FIREBASE_AUTH, (new_user) => {
+			if (new_user) {
+				setUser(new_user);
+			}
 		});
 	}, []);
 
+	// TODO: ADD SPLASH SCREEN HEREW
 	if (!loaded || !appIsReady) {
 		return null;
 	}
