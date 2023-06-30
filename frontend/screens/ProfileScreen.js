@@ -24,7 +24,7 @@ import ProductSavedMessage from "../components/ProductSavedMessage";
 import ProfileInfoCard from "../components/ProfileInfoCard";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
-import { useAppStore } from "../util/store";
+import { useUserStore } from "../util/userStore";
 
 const ProfileScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
@@ -33,7 +33,7 @@ const ProfileScreen = ({ navigation, route }) => {
 	const translateMenu = useSharedValue(0);
 	const translateMenuIndicator = useSharedValue(0);
 	const [activePage, setActivePage] = useState("saved");
-	const recentScans = useAppStore((state) => state.recentScans);
+	const recentScans = useUserStore((state) => state.recentScans);
 	const [allergies, setAllergies] = useState([
 		{
 			name: "test1",

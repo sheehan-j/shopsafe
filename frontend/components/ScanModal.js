@@ -10,7 +10,7 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import { Camera } from "expo-camera";
 import { useState, useEffect, useRef } from "react";
 import { Dimensions } from "react-native";
-import { useAppStore } from "../util/store";
+import { useUserStore } from "../util/userStore";
 import Modal from "react-native-modal";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
@@ -25,7 +25,7 @@ const ScanModal = ({
 	productNotFound,
 	setProductNotFound,
 }) => {
-	const addRecentScan = useAppStore((state) => state.addRecentScan);
+	const addRecentScan = useUserStore((state) => state.addRecentScan);
 	const { height } = Dimensions.get("window");
 	const [aspectRatio, setAspectRatio] = useState(null);
 	const cameraRef = useRef(null);

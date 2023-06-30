@@ -7,7 +7,7 @@ import {
 	PixelRatio,
 } from "react-native";
 import colors from "../config/colors";
-import { useAppStore } from "../util/store";
+import { useUserStore } from "../util/userStore";
 import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
 
 const ProfileInfoCard = ({ navigation }) => {
@@ -17,7 +17,7 @@ const ProfileInfoCard = ({ navigation }) => {
 		totalScans,
 		productsSaved,
 		allergiesAdded,
-	} = useAppStore((state) => ({
+	} = useUserStore((state) => ({
 		userFirstLastName: state.userFirstLastName,
 		userEmail: state.userEmail,
 		totalScans: state.totalScans,

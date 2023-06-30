@@ -18,15 +18,15 @@ import ProductListing from "../components/ProductListing";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import ProductSavedMessage from "../components/ProductSavedMessage";
-import { useAppStore } from "../util/store";
+import { useUserStore } from "../util/userStore";
 import { shallow } from "zustand/shallow";
 
 const HomeScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
 
-	const { recentScans } = useAppStore(
-		(state) => ({ recentScans: state.recentScans }),
+	const { user, recentScans } = useUserStore(
+		(state) => ({ user: state.user, recentScans: state.recentScans }),
 		shallow
 	);
 

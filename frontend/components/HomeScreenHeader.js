@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
-import { useAppStore } from "../util/store";
+import { useUserStore } from "../util/userStore";
 
 const HomeScreenHeader = () => {
 	const statusBarHeight = useStatusBarHeight();
