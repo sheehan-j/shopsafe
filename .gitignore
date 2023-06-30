@@ -11,6 +11,7 @@ npm-debug.*
 web-build/
 **/serviceAccountKey.json
 **/.env
+**/.dotenv
 
 # macOS
 .DS_Store
