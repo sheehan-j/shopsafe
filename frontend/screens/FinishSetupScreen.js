@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Pressable, Image } from "react-native";
+import { useState } from "react";
 import colors from "../config/colors";
 import useExtraPadding from "../util/useExtraPadding";
 import useStatusBarHeight from "../util/useStatusBarHeight";
@@ -11,32 +12,31 @@ const FinishSetupScreen = ({ navigation }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const state = useSignupStore();
 	const auth = FIREBASE_AUTH;
+	const [loading, setLoading] = useState(false);
 
 	const handleFinish = async () => {
+		setLoading(true);
 		try {
 			const email = state.signupEmail;
 			const password = state.signupPassword;
-			const response = await createUserWithEmailAndPassword(
-				auth,
-				email,
-				password
-			);
-			alert(response);
+			await createUserWithEmailAndPassword(auth, email, password);
+
+			// Reset state and navigate if signup is successful
+			state.setSignupFirstname("");
+			state.setSignupLastname("");
+			state.setSignupEmail("");
+			state.setSignupPassword("");
+			state.setSetupIngredients([]);
+
+			navigation.reset({
+				index: 0,
+				routes: [{ name: "Home" }],
+			});
 		} catch (error) {
-			console.log(error);
-			return;
+			alert(error);
+		} finally {
+			setLoading(false);
 		}
-
-		state.setSignupFirstname("");
-		state.setSignupLastname("");
-		state.setSignupEmail("");
-		state.setSignupPassword("");
-		state.setSetupIngredients([]);
-
-		navigation.reset({
-			index: 0,
-			routes: [{ name: "Home" }],
-		});
 	};
 
 	return (
@@ -47,7 +47,7 @@ const FinishSetupScreen = ({ navigation }) => {
 				<Pressable
 					style={styles.backIcon}
 					hitSlop={20}
-					onPress={() => navigation.pop()}
+					onPress={!loading && (() => navigation.pop())}
 				>
 					<Image
 						source={require("../assets/img/back_icon.png")}
@@ -80,12 +80,15 @@ const FinishSetupScreen = ({ navigation }) => {
 							backgroundColor: pressed
 								? colors.greenPressed
 								: colors.green,
+							opacity: loading ? 0.2 : 1,
 						},
 						styles.button,
 					]}
-					onPress={handleFinish}
+					onPress={!loading && handleFinish}
 				>
-					<Text style={styles.buttonText}>Finish Setup</Text>
+					<Text style={styles.buttonText}>
+						{loading ? "Signing Up..." : "Finish Setup"}
+					</Text>
 				</Pressable>
 			</View>
 		</View>
@@ -101,6 +104,13 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		backgroundColor: "white",
+	},
+	overlay: {
+		position: "absolute",
+		width: "100%",
+		height: "100%",
+		backgroundColor: "black",
+		zIndex: 100,
 	},
 	topContainer: {
 		width: "100%",
