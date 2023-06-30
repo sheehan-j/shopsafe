@@ -107,14 +107,22 @@ export default App = () => {
 							<Stack.Screen
 								name="Signup"
 								component={SignupScreen}
+								options={{ animation: "slide_from_right" }}
 							/>
 							<Stack.Screen
 								name="AllergiesSetupMessage"
 								component={AllergiesSetupMessageScreen}
+								options={{ animation: "slide_from_right" }}
+							/>
+							<Stack.Screen
+								name="EditAllergies"
+								component={EditAllergiesScreen}
+								options={{ animation: "slide_from_right" }}
 							/>
 							<Stack.Screen
 								name="FinishSetup"
 								component={FinishSetupScreen}
+								options={{ animation: "slide_from_right" }}
 							/>
 						</>
 					)}
@@ -123,9 +131,10 @@ export default App = () => {
 							<Stack.Screen
 								name="Home"
 								component={HomeScreen}
-								options={{
-									animation: "none",
-								}}
+								// options={{
+								// 	animation: "none",
+								// }}
+								options={{ animation: "slide_from_right" }}
 							/>
 							<Stack.Screen
 								name="Profile"
@@ -137,10 +146,12 @@ export default App = () => {
 							<Stack.Screen
 								name="Product"
 								component={ProductScreen}
+								options={{ animation: "slide_from_right" }}
 							/>
 							<Stack.Screen
 								name="EditAllergies"
 								component={EditAllergiesScreen}
+								options={{ animation: "slide_from_right" }}
 							/>
 						</>
 					)}
