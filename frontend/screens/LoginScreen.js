@@ -1,9 +1,18 @@
-import { StyleSheet, Text, TextInput, Pressable, Keyboard } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	TextInput,
+	Pressable,
+	Keyboard,
+	KeyboardAvoidingView,
+	View,
+	Platform,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect } from "react";
 import colors from "../config/colors";
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [focused, setFocused] = useState("");
@@ -18,94 +27,120 @@ const LoginScreen = () => {
 		<>
 			<StatusBar content="dark" />
 			<Pressable style={styles.container} onPress={clearFocus}>
-				<Text
-					style={{
-						...styles.label,
-						color: focused === "email" ? colors.navy : colors.gray,
-					}}
+				<KeyboardAvoidingView
+					style={{ width: "100%" }}
+					behavior={Platform.OS === "ios" ? "padding" : "height"}
 				>
-					Email
-				</Text>
-				<TextInput
-					style={{
-						...styles.input,
-						borderColor:
-							focused === "email"
-								? colors.navy
-								: colors.transGrayPressed,
-						marginBottom: 15,
-					}}
-					label={"Email"}
-					value={email}
-					onChangeText={setEmail}
-					placeholder={"Enter your email"}
-					textContentType="emailAddress"
-					autoCompleteType="off"
-					onFocus={() => setFocused("email")}
-					onBlur={() => setFocused("")}
-				/>
-				<Text
-					style={{
-						...styles.label,
-						color:
-							focused === "password" ? colors.navy : colors.gray,
-					}}
-				>
-					Password
-				</Text>
-				<TextInput
-					style={{
-						...styles.input,
-						borderColor:
-							focused === "password"
-								? colors.navy
-								: colors.transGrayPressed,
-						marginBottom: error ? 5 : 15,
-					}}
-					label={"Password"}
-					value={password}
-					onChangeText={setPassword}
-					placeholder={"Enter your password"}
-					textContentType="password"
-					autoCompleteType="off"
-					secureTextEntry
-					onFocus={() => setFocused("password")}
-					onBlur={() => setFocused("")}
-				/>
-				<Text
-					style={{
-						...styles.errorMessage,
-						display: error ? "flex" : "none",
-					}}
-				>
-					Email or password is invalid.
-				</Text>
-				<Pressable
-					style={({ pressed }) => [
-						{
-							backgroundColor: pressed
-								? colors.greenPressed
-								: colors.green,
-						},
-						styles.loginButton,
-					]}
-					onPress={() => {}}
-				>
-					<Text style={styles.loginButtonText}>Login</Text>
-				</Pressable>
-				<Pressable style={styles.signUpLink}>
-					<Text style={styles.signUpLinkText}>
-						Don't have an account?{" "}
+					{/* EMAIL INPUT */}
+					<View>
 						<Text
 							style={{
-								fontFamily: "Inter-Medium",
-								textDecorationLine: "underline",
+								...styles.label,
+								color:
+									focused === "email"
+										? colors.navy
+										: colors.gray,
 							}}
 						>
-							Sign up here!
+							Email
 						</Text>
-					</Text>
-				</Pressable>
+					</View>
+					<TextInput
+						style={{
+							...styles.input,
+							borderColor:
+								focused === "email"
+									? colors.navy
+									: colors.transGrayPressed,
+							marginBottom: 15,
+						}}
+						label={"Email"}
+						value={email}
+						onChangeText={setEmail}
+						placeholder={"Enter your email"}
+						textContentType="emailAddress"
+						autoCompleteType="off"
+						onFocus={() => setFocused("email")}
+						onBlur={() => setFocused("")}
+					/>
+
+					{/* PASSWORD INPUT */}
+					<View>
+						<Text
+							style={{
+								...styles.label,
+								color:
+									focused === "password"
+										? colors.navy
+										: colors.gray,
+							}}
+						>
+							Password
+						</Text>
+					</View>
+					<TextInput
+						style={{
+							...styles.input,
+							borderColor:
+								focused === "password"
+									? colors.navy
+									: colors.transGrayPressed,
+							marginBottom: error ? 5 : 15,
+						}}
+						label={"Password"}
+						value={password}
+						onChangeText={setPassword}
+						placeholder={"Enter your password"}
+						textContentType="password"
+						autoCompleteType="off"
+						secureTextEntry
+						onFocus={() => setFocused("password")}
+						onBlur={() => setFocused("")}
+					/>
+
+					{/* ERROR MESSAGE */}
+					<View>
+						<Text
+							style={{
+								...styles.errorMessage,
+								display: error ? "flex" : "none",
+							}}
+						>
+							Email or password is invalid.
+						</Text>
+					</View>
+
+					{/* LOGIN BUTTON */}
+					<Pressable
+						style={({ pressed }) => [
+							{
+								backgroundColor: pressed
+									? colors.greenPressed
+									: colors.green,
+							},
+							styles.loginButton,
+						]}
+						onPress={() => {}}
+					>
+						<Text style={styles.loginButtonText}>Login</Text>
+					</Pressable>
+					<Pressable
+						style={styles.signUpLink}
+						onPress={() => navigation.navigate("Signup")}
+					>
+						<Text style={styles.signUpLinkText}>
+							Don't have an account?{" "}
+							<Text
+								style={{
+									fontFamily: "Inter-Medium",
+									textDecorationLine: "underline",
+								}}
+							>
+								Sign up here!
+							</Text>
+						</Text>
+					</Pressable>
+				</KeyboardAvoidingView>
 			</Pressable>
 		</>
 	);

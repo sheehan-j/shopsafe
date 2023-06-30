@@ -20,7 +20,7 @@ import Animated, {
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
 import useExtraPadding from "../util/useExtraPadding";
-import { useAppStore } from "../util/store";
+import { useSignupStore } from "../util/signupStore";
 
 const EditAllergiesScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
@@ -29,6 +29,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	const [ingredients, setIngredients] = useState([]); // ALL ingredients
 	const [activeIngredients, setActiveIngredients] = useState([]); // Ingredinents being displayed
 	const [addedIngredients, setAddedIngredients] = useState([]); // Ingredients added by the user
+	const addedIngredientsRef = useRef(null); // For capturing current state of addedIngredients before navigate away
 	const [searchedIngredients, setSearchedIngredients] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	const [searching, setSearching] = useState(false); // Whether or not results are currently being filtered with a search term
@@ -38,10 +39,12 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	const [firstProcess, setFirstProcess] = useState(true);
 	const [loading, setLoading] = useState(true);
 	// Track setup ingredients in case the user switches between setup screens
-	const { setupIngredients, setSetupIngredients } = useAppStore((state) => ({
-		setupIngredients: state.setupIngredients,
-		setSetupIngredients: state.setSetupIngredients,
-	}));
+	const { setupIngredients, setSetupIngredients } = useSignupStore(
+		(state) => ({
+			setupIngredients: state.setupIngredients,
+			setSetupIngredients: state.setSetupIngredients,
+		})
+	);
 	// TODO: Change how added ingredients are counted during the process,
 	// Check whether they were already added when retrieving from db
 
@@ -88,6 +91,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	// of added ingredients is different from the original number
 	// This determines whether the submit button is enabled/disabled
 	useEffect(() => {
+		addedIngredientsRef.current = addedIngredients;
 		setChanged(addedIngredients.length !== originalAddedCount);
 		if (addedIngredients.length !== originalAddedCount) {
 			fadeIn();
@@ -106,6 +110,15 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 			);
 		}
 	}, [page]);
+
+	useEffect(() => {
+		if (route.params?.firstTimeSetup) {
+			const unsubscribe = navigation.addListener("beforeRemove", () => {
+				setSetupIngredients(addedIngredientsRef.current);
+			});
+			return unsubscribe;
+		}
+	}, []);
 
 	// Process the ingredients to be displayed on the screen
 	const processNewActiveIngredients = (newIngredients) => {
@@ -161,7 +174,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	};
 
 	// Occurs when user presses "plus" icon on an ingredient from the ingredient list
-	const addIngredient = (id) => {
+	const handleIngredientAdded = (id) => {
 		// Find the target ingredient and set "added" to true
 		let targetIngredient;
 		const newIngredients = Array.from(ingredients);
@@ -189,7 +202,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 
 	// Delete an added ingredient - occurs when user presses the "X" icon next to the added
 	// icon in the top section
-	const deleteIngredient = (id) => {
+	const handleIngredientDeleted = (id) => {
 		// Locate the target ingredient and set "added" to false
 		const newIngredients = Array.from(ingredients);
 		let i;
@@ -228,13 +241,6 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 		setSearchText("");
 		setLoading(false);
 		Keyboard.dismiss();
-	};
-
-	const handleSubmit = () => {
-		if (route.params?.firstTimeSetup) {
-			setSetupIngredients(addedIngredients);
-			navigation.navigate("AllergiesSetupMessage");
-		}
 	};
 
 	// Determine whether there are enough remaining ingredients to
@@ -297,7 +303,11 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 						/>
 					</Pressable>
 					<View style={styles.titleWrapper}>
-						<Text style={styles.title}>Edit Allergies</Text>
+						<Text style={styles.title}>
+							{route.params?.firstTimeSetup
+								? "Setup Allergies"
+								: "Edit Allergies"}
+						</Text>
 					</View>
 				</View>
 
@@ -326,7 +336,10 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 							>
 								<Image
 									source={require("../assets/img/x_icon_gray.png")}
-									style={{ width: "100%", height: "100%" }}
+									style={{
+										width: "100%",
+										height: "100%",
+									}}
 								/>
 							</Pressable>
 						)}
@@ -384,7 +397,9 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 												}
 												hitSlop={12}
 												onPress={() =>
-													deleteIngredient(element.id)
+													handleIngredientDeleted(
+														element.id
+													)
 												}
 											>
 												<Image
@@ -419,16 +434,16 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 										</Text>
 										<Pressable
 											style={styles.plusIcon}
-											hitSlop={5}
+											hitSlop={10}
 											onPress={
 												element.added
 													? () => {
-															deleteIngredient(
+															handleIngredientDeleted(
 																element.id
 															);
 													  }
 													: () => {
-															addIngredient(
+															handleIngredientAdded(
 																element.id
 															);
 													  }
@@ -529,7 +544,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 								},
 								styles.submitChangesButton,
 							]}
-							onPress={handleSubmit}
+							onPress={() => navigation.navigate("FinishSetup")}
 						>
 							<Text style={styles.submitChangesButtonText}>
 								{route.params?.firstTimeSetup

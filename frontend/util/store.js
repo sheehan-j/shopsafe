@@ -52,8 +52,8 @@ const defaultRecentScans = [
 ];
 
 const store = (set) => ({
-	userFirstLastName: "Jordan Sheehan",
-	userEmail: "jordansheehan26@gmail.com",
+	user: null,
+	setUser: (user) => set((state) => (state.user = user)),
 	totalScans: 12,
 	productsSaved: 6,
 	allergiesAdded: 3,

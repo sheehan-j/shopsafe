@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import { Asset } from "expo-asset";
+import { onAuthStateChanged } from "firebase/auth";
+import { FIREBASE_AUTH } from "./firebaseConfig";
 import * as SplashScreen from "expo-splash-screen";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
@@ -10,6 +12,9 @@ import ProfileScreen from "./screens/ProfileScreen";
 import EditAllergiesScreen from "./screens/EditAllergiesScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
+import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
+import FinishSetupScreen from "./screens/FinishSetupScreen";
+import { useAppStore } from "./util/store";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,7 +39,12 @@ export default App = () => {
 		"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
 	});
 
-	// Load any resources or data that you need prior to rendering the app
+	const { user, setUser } = useAppStore((state) => ({
+		user: state.user,
+		setUser: state.setUser,
+	}));
+
+	// Load any resources or data that you need p rior to rendering the app
 	useEffect(() => {
 		async function loadResourcesAndDataAsync() {
 			try {
@@ -70,6 +80,12 @@ export default App = () => {
 		loadResourcesAndDataAsync();
 	}, []);
 
+	useEffect(() => {
+		onAuthStateChanged(FIREBASE_AUTH, (user) => {
+			console.log(user);
+		});
+	}, []);
+
 	if (!loaded || !appIsReady) {
 		return null;
 	}
@@ -82,27 +98,52 @@ export default App = () => {
 						headerShown: false,
 					}}
 				>
-					{/* <Stack.Screen name="Login" component={LoginScreen} /> */}
-					<Stack.Screen name="Signup" component={SignupScreen} />
-					<Stack.Screen
-						name="Home"
-						component={HomeScreen}
-						options={{
-							animation: "none",
-						}}
-					/>
-					<Stack.Screen
-						name="Profile"
-						component={ProfileScreen}
-						options={{
-							animation: "none",
-						}}
-					/>
-					<Stack.Screen name="Product" component={ProductScreen} />
-					<Stack.Screen
-						name="EditAllergies"
-						component={EditAllergiesScreen}
-					/>
+					{!user && (
+						<>
+							<Stack.Screen
+								name="Login"
+								component={LoginScreen}
+							/>
+							<Stack.Screen
+								name="Signup"
+								component={SignupScreen}
+							/>
+							<Stack.Screen
+								name="AllergiesSetupMessage"
+								component={AllergiesSetupMessageScreen}
+							/>
+							<Stack.Screen
+								name="FinishSetup"
+								component={FinishSetupScreen}
+							/>
+						</>
+					)}
+					{user && (
+						<>
+							<Stack.Screen
+								name="Home"
+								component={HomeScreen}
+								options={{
+									animation: "none",
+								}}
+							/>
+							<Stack.Screen
+								name="Profile"
+								component={ProfileScreen}
+								options={{
+									animation: "none",
+								}}
+							/>
+							<Stack.Screen
+								name="Product"
+								component={ProductScreen}
+							/>
+							<Stack.Screen
+								name="EditAllergies"
+								component={EditAllergiesScreen}
+							/>
+						</>
+					)}
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>
