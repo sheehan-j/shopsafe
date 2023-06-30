@@ -14,7 +14,7 @@ import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
 import FinishSetupScreen from "./screens/FinishSetupScreen";
-import { useAppStore } from "./util/store";
+import { useUserStore } from "./util/userStore";
 
 const Stack = createNativeStackNavigator();
 
@@ -39,7 +39,7 @@ export default App = () => {
 		"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
 	});
 
-	const { user, setUser } = useAppStore((state) => ({
+	const { user, setUser } = useUserStore((state) => ({
 		user: state.user,
 		setUser: state.setUser,
 	}));
