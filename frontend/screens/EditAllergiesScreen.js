@@ -9,7 +9,8 @@ import {
 	Keyboard,
 	ActivityIndicator,
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
 	useSharedValue,
@@ -38,6 +39,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	const [originalAddedCount, setOriginalAddedCount] = useState(0);
 	const [firstProcess, setFirstProcess] = useState(true);
 	const [loading, setLoading] = useState(true);
+	const [readyToNavigate, setReadyToNavigate] = useState(false);
 	// Track setup ingredients in case the user switches between setup screens
 	const { setupIngredients, setSetupIngredients } = useSignupStore(
 		(state) => ({
@@ -54,8 +56,12 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 			try {
 				// Get added ingredients
 				let existingAddedIngredients;
+				// If this screen is being used for profile setup, store the current state of setupIngredients
+				//
 				if (route.params?.firstTimeSetup) {
-					existingAddedIngredients = setupIngredients;
+					existingAddedIngredients =
+						setupIngredients === null ? [] : setupIngredients;
+					setSetupIngredients(null);
 					setOriginalAddedCount(existingAddedIngredients.length);
 				} else {
 					// TODO: ADD FETCH TO DB
@@ -66,7 +72,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 
 				// Process existing added ingredient's indices
 				const response = require("../assets/test.json");
-				response.tags.forEach((element, index) => {
+				response.tags.forEach((element) => {
 					element.added = false; // TODO: REMOVE THIS WHEN DB IS SETUP
 					if (existingAddedIngredients.includes(element)) {
 						element.added = true;
@@ -111,14 +117,28 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 		}
 	}, [page]);
 
+	// Catch update to readyToNavigate from handleSubmit function
+	// setupIngredients is set to null on page load, so we can check for equality with null
+	// to know if setupIngredinets has been updated and ready to navigate, even if
+	// no allergies were added (setupIngredients would be [])
+	// We also check readyToNavigate, which is only set to true when the submit button is pressed
+	// This way, we prevent navigation when the screen loads and allergies that have already
+	// been added during setup are loaded in setupIngredients
 	useEffect(() => {
-		if (route.params?.firstTimeSetup) {
-			const unsubscribe = navigation.addListener("beforeRemove", () => {
-				setSetupIngredients(addedIngredientsRef.current);
-			});
-			return unsubscribe;
+		if (readyToNavigate && setupIngredients !== null) {
+			setReadyToNavigate(false);
+			navigation.navigate("FinishSetup");
 		}
-	}, []);
+	}, [setupIngredients, readyToNavigate]);
+
+	const handleSubmit = () => {
+		if (route.params?.firstTimeSetup) {
+			setReadyToNavigate(true);
+			setSetupIngredients(addedIngredients);
+		} else {
+			navigation.navigate("FinishSetup");
+		}
+	};
 
 	// Process the ingredients to be displayed on the screen
 	const processNewActiveIngredients = (newIngredients) => {
@@ -544,7 +564,7 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 								},
 								styles.submitChangesButton,
 							]}
-							onPress={() => navigation.navigate("FinishSetup")}
+							onPress={handleSubmit}
 						>
 							<Text style={styles.submitChangesButtonText}>
 								{route.params?.firstTimeSetup

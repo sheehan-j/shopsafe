@@ -10,7 +10,7 @@ const store = (set) => ({
 	setSignupEmail: (email) => set(() => ({ signupEmail: email })),
 	signupPassword: "",
 	setSignupPassword: (password) => set(() => ({ signupPassword: password })),
-	setupIngredients: [],
+	setupIngredients: null,
 	setSetupIngredients: (ingredients) =>
 		set(() => ({
 			setupIngredients: ingredients,

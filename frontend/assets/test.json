@@ -16,13 +16,6 @@
 			"url": "https://world.openfoodfacts.org/ingredient/sugar"
 		},
 		{
-			"id": "en:water",
-			"known": 1,
-			"name": "Water",
-			"products": 265422,
-			"url": "https://world.openfoodfacts.org/ingredient/water"
-		},
-		{
 			"id": "en:flavouring",
 			"known": 1,
 			"name": "Flavouring",
@@ -56,13 +49,6 @@
 			"name": "Vegetable",
 			"products": 199788,
 			"url": "https://world.openfoodfacts.org/ingredient/vegetable"
-		},
-		{
-			"id": "en:cereal",
-			"known": 1,
-			"name": "Cereal",
-			"products": 194257,
-			"url": "https://world.openfoodfacts.org/ingredient/cereal"
 		},
 		{
 			"id": "en:natural-flavouring",
@@ -5348,6 +5334,13 @@
 			"name": "Sardine",
 			"products": 1524,
 			"url": "https://world.openfoodfacts.org/ingredient/sardine"
+		},
+		{
+			"id": "en:water",
+			"known": 1,
+			"name": "Water",
+			"products": 265422,
+			"url": "https://world.openfoodfacts.org/ingredient/water"
 		},
 		{
 			"id": "en:heavy-cream",
@@ -11025,6 +11018,13 @@
 			"name": "Special bread",
 			"products": 389,
 			"url": "https://world.openfoodfacts.org/ingredient/special-bread"
+		},
+		{
+			"id": "en:cereal",
+			"known": 1,
+			"name": "Cereal",
+			"products": 194257,
+			"url": "https://world.openfoodfacts.org/ingredient/cereal"
 		},
 		{
 			"id": "en:tea-extract",

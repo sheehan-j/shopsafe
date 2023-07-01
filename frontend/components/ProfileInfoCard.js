@@ -9,21 +9,18 @@ import {
 import colors from "../config/colors";
 import { useUserStore } from "../util/userStore";
 import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
+import { FIREBASE_AUTH } from "../firebaseConfig";
 
 const ProfileInfoCard = ({ navigation }) => {
-	const {
-		userFirstLastName,
-		userEmail,
-		totalScans,
-		productsSaved,
-		allergiesAdded,
-	} = useUserStore((state) => ({
-		userFirstLastName: state.userFirstLastName,
-		userEmail: state.userEmail,
-		totalScans: state.totalScans,
-		productsSaved: state.productsSaved,
-		allergiesAdded: state.allergiesAdded,
-	}));
+	const email = FIREBASE_AUTH?.currentUser?.email;
+	const { userInfo, totalScans, productsSaved, allergiesAdded } =
+		useUserStore((state) => ({
+			userInfo: state.userInfo,
+			userEmail: state.userEmail,
+			totalScans: state.totalScans,
+			productsSaved: state.productsSaved,
+			allergiesAdded: state.allergiesAdded,
+		}));
 
 	return (
 		<View style={styles.wrapper}>
@@ -32,8 +29,10 @@ const ProfileInfoCard = ({ navigation }) => {
 					source={require("../assets/img/profile_picture.jpg")}
 					style={styles.profilePicture}
 				/>
-				<Text style={styles.name}>{userFirstLastName}</Text>
-				<Text style={styles.email}>{userEmail}</Text>
+				<Text
+					style={styles.name}
+				>{`${userInfo?.firstname} ${userInfo?.lastname}`}</Text>
+				<Text style={styles.email}>{email}</Text>
 				<View style={styles.statsContainer}>
 					<ProfileInfoCardStatistic
 						number={totalScans}

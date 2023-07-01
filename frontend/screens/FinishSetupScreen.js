@@ -19,7 +19,8 @@ const FinishSetupScreen = ({ navigation }) => {
 	const extraPadding = useExtraPadding();
 	const statusBarHeight = useStatusBarHeight();
 	const state = useSignupStore();
-	const { setUserInfo } = useUserStore((state) => ({
+	const { setUser, setUserInfo } = useUserStore((state) => ({
+		setUser: state.setUser,
 		setUserInfo: state.setUserInfo,
 	}));
 	const [loading, setLoading] = useState(false);
@@ -45,16 +46,26 @@ const FinishSetupScreen = ({ navigation }) => {
 
 		// Once user is created, add record for userInfo
 		try {
+			const filteredAddedIngredients = state.setupIngredients.map(
+				(ingredient) => {
+					const { added, ...rest } = ingredient; // Destructure, remove added field
+					return rest;
+				}
+			);
+
 			const newUserInfo = {
 				firstname: state.signupFirstname,
 				lastname: state.signupLastname,
 				picture_url: "",
+				allergies: filteredAddedIngredients,
+				recentScans: [],
+				savedProducts: [],
 			};
 			await setDoc(
 				doc(FIRESTORE, "users", auth.currentUser.uid),
 				newUserInfo
 			);
-			setUserInfo(newUserInfo);
+			setUserInfo(newUserInfo); // Update user store
 
 			// Reset state and navigate if signup is successful
 			state.setSignupFirstname("");
@@ -63,7 +74,10 @@ const FinishSetupScreen = ({ navigation }) => {
 			state.setSignupPassword("");
 			state.setSetupIngredients([]);
 		} catch (err) {
+			// Reset all user info and delete user in Firebase
 			await deleteUser(auth.currentUser);
+			setUser(null);
+			setUserInfo(null);
 
 			console.log(err);
 			alert(

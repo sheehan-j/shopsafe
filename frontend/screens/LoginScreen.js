@@ -9,10 +9,12 @@ import {
 	Platform,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import colors from "../config/colors";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { FIREBASE_AUTH } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { useUserStore } from "../util/userStore";
 
 const LoginScreen = ({ navigation }) => {
 	const [email, setEmail] = useState("");
@@ -20,6 +22,10 @@ const LoginScreen = ({ navigation }) => {
 	const [focused, setFocused] = useState("");
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const { setUser, setUserInfo } = useUserStore((state) => ({
+		setUser: state.setUser,
+		setUserInfo: state.setUserInfo,
+	}));
 
 	const clearFocus = () => {
 		setFocused("");
@@ -50,6 +56,39 @@ const LoginScreen = ({ navigation }) => {
 			} else {
 				setError(`Unexpected error: ${e.code}`);
 			}
+			setLoading(false);
+			return;
+		}
+
+		// Retrieve user info
+		try {
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+
+			if (docSnap.exists()) {
+				console.log("User info loaded.");
+				console.log(docSnap.data());
+				setUserInfo(docSnap.data());
+			} else {
+				// Reset user
+				console.log("User info not found.");
+				setUser(null);
+				setUserInfo(null);
+				alert(
+					"Sorry! We ran into an unexpected error while trying to retrieve your user info. Please check your network connection and try again. If not, try again later.\n"
+				);
+			}
+		} catch (err) {
+			alert(
+				"Sorry! We ran into an unexpected error while trying to retrieve your user info. Please check your network connection and try again. If not, try again later.\n"
+			);
+			console.log(err);
+			setUser(null);
+			setUserInfo(null);
 		} finally {
 			setLoading(false);
 		}
