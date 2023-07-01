@@ -53,7 +53,9 @@ const defaultRecentScans = [
 
 const store = (set) => ({
 	user: null,
-	setUser: (user) => set((state) => (state.user = user)),
+	setUser: (newUser) => set(() => ({ user: newUser })),
+	userInfo: null,
+	setUserInfo: (newUserInfo) => set(() => ({ userInfo: newUserInfo })),
 	totalScans: 12,
 	productsSaved: 6,
 	allergiesAdded: 3,

@@ -6,25 +6,55 @@ import useStatusBarHeight from "../util/useStatusBarHeight";
 import { useSignupStore } from "../util/signupStore";
 import { useUserStore } from "../util/userStore";
 import { FIREBASE_AUTH } from "../firebaseConfig";
+import { FIRESTORE } from "../firebaseConfig";
 import {
 	createUserWithEmailAndPassword,
-	signInWithEmailAndPassword,
+	deleteUser,
+	updateProfile,
 } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 const FinishSetupScreen = ({ navigation }) => {
+	const auth = FIREBASE_AUTH;
 	const extraPadding = useExtraPadding();
 	const statusBarHeight = useStatusBarHeight();
 	const state = useSignupStore();
-	const auth = FIREBASE_AUTH;
+	const { setUserInfo } = useUserStore((state) => ({
+		setUserInfo: state.setUserInfo,
+	}));
 	const [loading, setLoading] = useState(false);
 
 	const handleFinish = async () => {
 		setLoading(true);
+		let user;
+
 		try {
 			// Create the new user
 			const email = state.signupEmail;
 			const password = state.signupPassword;
-			await createUserWithEmailAndPassword(auth, email, password);
+			user = await createUserWithEmailAndPassword(auth, email, password);
+		} catch (err) {
+			alert(
+				`Sorry! We ran into an unexpected error while trying to create your an account. Please check your network connection and try again. If not, try again later.\nError code: ${err}`
+			);
+			console.log(err);
+
+			setLoading(false);
+			return;
+		}
+
+		// Once user is created, add record for userInfo
+		try {
+			const newUserInfo = {
+				firstname: state.signupFirstname,
+				lastname: state.signupLastname,
+				picture_url: "",
+			};
+			await setDoc(
+				doc(FIRESTORE, "users", auth.currentUser.uid),
+				newUserInfo
+			);
+			setUserInfo(newUserInfo);
 
 			// Reset state and navigate if signup is successful
 			state.setSignupFirstname("");
@@ -33,10 +63,12 @@ const FinishSetupScreen = ({ navigation }) => {
 			state.setSignupPassword("");
 			state.setSetupIngredients([]);
 		} catch (err) {
+			await deleteUser(auth.currentUser);
+
+			console.log(err);
 			alert(
-				`Sorry! We ran into an unexpected error while trying to create your an account. Please check your network connection and try again. If not, try again later.\nError code: ${err.code}`
+				`Sorry! We ran into an unexpected error while trying to create your an account. Please check your network connection and try again. If not, try again later.\nError code: ${err}`
 			);
-			return;
 		} finally {
 			setLoading(false);
 		}

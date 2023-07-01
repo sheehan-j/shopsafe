@@ -9,6 +9,7 @@ import Animated, {
 	Easing,
 	interpolate,
 } from "react-native-reanimated";
+import { FIREBASE_AUTH } from "../firebaseConfig";
 
 import colors from "../config/colors";
 import Navbar from "../components/Navbar";
@@ -25,10 +26,10 @@ const HomeScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
 
-	const { user, recentScans } = useUserStore(
-		(state) => ({ user: state.user, recentScans: state.recentScans }),
-		shallow
-	);
+	const { userInfo, recentScans } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+		recentScans: state.recentScans,
+	}));
 
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
@@ -138,7 +139,7 @@ const HomeScreen = ({ navigation, route }) => {
 					/>
 				</Animated.View>
 				{/* <CustomStatusBar color={colors.headerGreen} border={false} /> */}
-				<HomeScreenHeader name={"Jordan"} />
+				<HomeScreenHeader name={userInfo?.firstname} />
 				<ScrollView
 					style={{
 						width: "100%",

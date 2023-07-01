@@ -3,9 +3,9 @@ import useStatusBarHeight from "../util/useStatusBarHeight";
 import colors from "../config/colors";
 import { useUserStore } from "../util/userStore";
 
-const HomeScreenHeader = () => {
+const HomeScreenHeader = ({ name }) => {
 	const statusBarHeight = useStatusBarHeight();
-	const name = "Jordan";
+	const userInfo = useUserStore((state) => state.userInfo);
 
 	return (
 		<View style={{ ...styles.container, paddingTop: 40 + statusBarHeight }}>

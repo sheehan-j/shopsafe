@@ -33,9 +33,11 @@ function cacheImages(images) {
 
 export default App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
+	const [userInfoReady, setUserInfoReady] = useState(false);
 	// const [resourcesLoaded, setResourcesLoaded] = useState(false);
-	const { user, setUser } = useUserStore((state) => ({
+	const { user, userInfo, setUser } = useUserStore((state) => ({
 		user: state.user,
+		userInfo: state.userInfo,
 		setUser: state.setUser,
 	}));
 
@@ -114,7 +116,7 @@ export default App = () => {
 						headerShown: false,
 					}}
 				>
-					{!user && (
+					{(!user || !userInfo) && (
 						<>
 							<Stack.Screen
 								name="Login"
@@ -142,7 +144,7 @@ export default App = () => {
 							/>
 						</>
 					)}
-					{user && (
+					{user && userInfo && (
 						<>
 							<Stack.Screen
 								name="Home"
