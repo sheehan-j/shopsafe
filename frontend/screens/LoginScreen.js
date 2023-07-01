@@ -38,6 +38,7 @@ const LoginScreen = ({ navigation }) => {
 
 		// If input is valid, attempt login with firebase
 		try {
+			// User object in userStore is updated by useEffect in App.js
 			setLoading(true);
 			await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
 		} catch (e) {
@@ -159,7 +160,14 @@ const LoginScreen = ({ navigation }) => {
 					<Pressable
 						style={styles.signUpLink}
 						onPress={
-							!loading && (() => navigation.navigate("Signup"))
+							!loading &&
+							(() => {
+								setEmail("");
+								setPassword("");
+								setFocused("");
+								setError(null);
+								navigation.navigate("Signup");
+							})
 						}
 					>
 						<Text style={styles.signUpLinkText}>

@@ -82,7 +82,7 @@ const AllergiesSetupMessageScreen = ({ navigation }) => {
 						styles.button,
 					]}
 					onPress={() =>
-						navigation.navigate("EditAllergies", {
+						navigation.navigate("SetupAllergies", {
 							firstTimeSetup: true,
 						})
 					}

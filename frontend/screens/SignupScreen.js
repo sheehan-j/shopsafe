@@ -10,8 +10,11 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect } from "react";
-import colors from "../config/colors";
 import { useSignupStore } from "../util/signupStore";
+import { config } from "../config/constants";
+import { fetchSignInMethodsForEmail } from "firebase/auth";
+import { FIREBASE_AUTH } from "../firebaseConfig";
+import colors from "../config/colors";
 
 const SignupScreen = ({ navigation }) => {
 	const [firstname, setFirstname] = useState("");
@@ -23,12 +26,58 @@ const SignupScreen = ({ navigation }) => {
 	const [error, setError] = useState("");
 	const state = useSignupStore();
 
-	const clearFocus = () => {
-		setFocused("");
-		Keyboard.dismiss();
+	const validateInput = async () => {
+		// Ensure  all fields are filled
+		if (
+			!firstname ||
+			!lastname ||
+			!email ||
+			!password ||
+			!confirmPassword
+		) {
+			setError("Error: All fields are required.");
+			return false;
+		}
+
+		// Ensure email is not registered
+		let emailSignInMethods;
+		try {
+			emailSignInMethods = await fetchSignInMethodsForEmail(
+				FIREBASE_AUTH,
+				email
+			);
+		} catch (err) {
+			// This method should only throw the error "auth/invalid-email"
+			if (err.code == "auth/invalid-email") {
+				setError("Error: Invalid email.");
+			} else {
+				setError(`Unexpected error: ${err.code}`);
+			}
+			return false;
+		}
+
+		if (emailSignInMethods.length !== 0) {
+			setError("Error: Email already registered to an account.");
+			return false;
+		}
+
+		if (password !== confirmPassword) {
+			setError("Error: Passwords do not match.");
+			return false;
+		}
+
+		if (password.length < 6) {
+			setError("Error: Password must at least 6 characters in length.");
+			return false;
+		}
+
+		return true;
 	};
 
-	const handleSignup = () => {
+	const handleSignup = async () => {
+		const valid = await validateInput();
+		if (!valid) return;
+
 		state.setSignupFirstname(firstname);
 		state.setSignupLastname(lastname);
 		state.setSignupEmail(email);
@@ -49,6 +98,11 @@ const SignupScreen = ({ navigation }) => {
 		state.setSignupPassword("");
 		state.setSetupIngredients([]);
 	}, []);
+
+	const clearFocus = () => {
+		setFocused("");
+		Keyboard.dismiss();
+	};
 
 	return (
 		<>
@@ -174,7 +228,7 @@ const SignupScreen = ({ navigation }) => {
 								focused === "password"
 									? colors.navy
 									: colors.transGrayPressed,
-							marginBottom: error ? 5 : 15,
+							marginBottom: 15,
 						}}
 						label={"Password"}
 						value={password}
@@ -197,7 +251,7 @@ const SignupScreen = ({ navigation }) => {
 										: colors.gray,
 							}}
 						>
-							Password
+							Confirm Password
 						</Text>
 					</View>
 					<TextInput
@@ -227,7 +281,7 @@ const SignupScreen = ({ navigation }) => {
 								display: error ? "flex" : "none",
 							}}
 						>
-							Email or password is invalid.
+							{error}
 						</Text>
 					</View>
 

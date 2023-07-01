@@ -4,8 +4,12 @@ import colors from "../config/colors";
 import useExtraPadding from "../util/useExtraPadding";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import { useSignupStore } from "../util/signupStore";
+import { useUserStore } from "../util/userStore";
 import { FIREBASE_AUTH } from "../firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+	createUserWithEmailAndPassword,
+	signInWithEmailAndPassword,
+} from "firebase/auth";
 
 const FinishSetupScreen = ({ navigation }) => {
 	const extraPadding = useExtraPadding();
@@ -17,6 +21,7 @@ const FinishSetupScreen = ({ navigation }) => {
 	const handleFinish = async () => {
 		setLoading(true);
 		try {
+			// Create the new user
 			const email = state.signupEmail;
 			const password = state.signupPassword;
 			await createUserWithEmailAndPassword(auth, email, password);
@@ -27,13 +32,11 @@ const FinishSetupScreen = ({ navigation }) => {
 			state.setSignupEmail("");
 			state.setSignupPassword("");
 			state.setSetupIngredients([]);
-
-			navigation.reset({
-				index: 0,
-				routes: [{ name: "Home" }],
-			});
-		} catch (error) {
-			alert(error);
+		} catch (err) {
+			alert(
+				`Sorry! We ran into an unexpected error while trying to create your an account. Please check your network connection and try again. If not, try again later.\nError code: ${err.code}`
+			);
+			return;
 		} finally {
 			setLoading(false);
 		}

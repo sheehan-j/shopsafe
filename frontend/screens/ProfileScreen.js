@@ -26,7 +26,7 @@ import ProfileInfoCard from "../components/ProfileInfoCard";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import { useUserStore } from "../util/userStore";
 
-const ProfileScreen = ({ navigation, route }) => {
+const ProfileScreen = ({ navigation }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
 	const screenWidth = Dimensions.get("window").width;
