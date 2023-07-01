@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useFonts } from "expo-font";
+import * as Font from "expo-font";
 import { useEffect, useState } from "react";
 import { Asset } from "expo-asset";
 import { onAuthStateChanged } from "firebase/auth";
@@ -16,6 +16,9 @@ import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
 import FinishSetupScreen from "./screens/FinishSetupScreen";
 import { useUserStore } from "./util/userStore";
 
+// Stop splash screen from being hidden while the app is loading
+SplashScreen.preventAutoHideAsync();
+
 const Stack = createNativeStackNavigator();
 
 function cacheImages(images) {
@@ -30,15 +33,7 @@ function cacheImages(images) {
 
 export default App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
-	const [loaded] = useFonts({
-		"Inter-Bold": require("./assets/fonts/Inter-Bold.ttf"),
-		"Inter-ExtraBold": require("./assets/fonts/Inter-ExtraBold.ttf"),
-		"Inter-Light": require("./assets/fonts/Inter-Light.ttf"),
-		Inter: require("./assets/fonts/Inter-Regular.ttf"),
-		"Inter-Medium": require("./assets/fonts/Inter-Medium.ttf"),
-		"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
-	});
-
+	// const [resourcesLoaded, setResourcesLoaded] = useState(false);
 	const { user, setUser } = useUserStore((state) => ({
 		user: state.user,
 		setUser: state.setUser,
@@ -48,8 +43,22 @@ export default App = () => {
 	useEffect(() => {
 		async function loadResourcesAndDataAsync() {
 			try {
-				SplashScreen.preventAutoHideAsync();
+				await Font.loadAsync({
+					"Inter-Bold": require("./assets/fonts/Inter-Bold.ttf"),
+					"Inter-ExtraBold": require("./assets/fonts/Inter-ExtraBold.ttf"),
+					"Inter-Light": require("./assets/fonts/Inter-Light.ttf"),
+					Inter: require("./assets/fonts/Inter-Regular.ttf"),
+					"Inter-Medium": require("./assets/fonts/Inter-Medium.ttf"),
+					"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
+				});
 
+				// Check if there is a current user
+				const currentUser = FIREBASE_AUTH.currentUser;
+				if (currentUser) {
+					setUser(currentUser);
+				}
+
+				// Cache image icons for faster load in-app
 				const imageAssets = cacheImages([
 					require("./assets/img/check_icon.png"),
 					require("./assets/img/x_icon.png"),
@@ -69,16 +78,21 @@ export default App = () => {
 
 				await Promise.all([...imageAssets]);
 			} catch (e) {
-				// You might want to provide this error information to an error reporting service
 				console.warn(e);
 			} finally {
 				setAppIsReady(true);
-				SplashScreen.hideAsync();
 			}
 		}
 
 		loadResourcesAndDataAsync();
 	}, []);
+
+	// Hide the splash screen once appIsReady is true
+	useEffect(() => {
+		if (appIsReady) {
+			SplashScreen.hideAsync();
+		}
+	}, [appIsReady]);
 
 	useEffect(() => {
 		onAuthStateChanged(FIREBASE_AUTH, (new_user) => {
@@ -88,8 +102,7 @@ export default App = () => {
 		});
 	}, []);
 
-	// TODO: ADD SPLASH SCREEN HEREW
-	if (!loaded || !appIsReady) {
+	if (!appIsReady) {
 		return null;
 	}
 
@@ -118,7 +131,7 @@ export default App = () => {
 								options={{ animation: "slide_from_right" }}
 							/>
 							<Stack.Screen
-								name="EditAllergies"
+								name="SetupAllergies"
 								component={EditAllergiesScreen}
 								options={{ animation: "slide_from_right" }}
 							/>
