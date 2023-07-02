@@ -15,6 +15,10 @@ import Animated, {
 	Easing,
 } from "react-native-reanimated";
 import { PanGestureHandler } from "react-native-gesture-handler";
+import { useUserStore } from "../util/userStore";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import useStatusBarHeight from "../util/useStatusBarHeight";
 
 import colors from "../config/colors";
 import CustomStatusBar from "../components/CustomStatusBar";
@@ -22,9 +26,7 @@ import Navbar from "../components/Navbar";
 import ProductListing from "../components/ProductListing";
 import ProductSavedMessage from "../components/ProductSavedMessage";
 import ProfileInfoCard from "../components/ProfileInfoCard";
-
-import useStatusBarHeight from "../util/useStatusBarHeight";
-import { useUserStore } from "../util/userStore";
+import NoDataFound from "../components/NoDataFound";
 
 const ProfileScreen = ({ navigation }) => {
 	const statusBarHeight = useStatusBarHeight();
@@ -35,8 +37,10 @@ const ProfileScreen = ({ navigation }) => {
 	const [activePage, setActivePage] = useState("saved");
 	const [savedPageVisible, setSavedPageVisible] = useState(true);
 	const [allergiesPageVisible, setAllergiesPageVisible] = useState(false);
-	const { userInfo } = useUserStore((state) => ({
+	const [saveStatusUpdating, setSaveStatusUpdating] = useState(false);
+	const { userInfo, setUserInfo } = useUserStore((state) => ({
 		userInfo: state.userInfo,
+		setUserInfo: state.setUserInfo,
 	}));
 	const scrollRef = useRef();
 	const scrollToTop = () => {
@@ -47,12 +51,50 @@ const ProfileScreen = ({ navigation }) => {
 	};
 
 	// Handle save message eanimation
-	const onSaveButtonPressed = () => {
+	const onSaveButtonPressed = async (id) => {
+		setSaveStatusUpdating(true);
 		saveMessageAnimation.value = withTiming(1, {
 			duration: 250,
 			easing: Easing.inOut(Easing.quad),
 		});
 
+		try {
+			// Retrieve user info data from DB
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+			if (docSnap.exists()) {
+				dbUserInfo = docSnap.data();
+			} else {
+				throw new Error("Document not found.");
+			}
+
+			dbUserInfo.savedProducts = dbUserInfo.savedProducts.filter(
+				(scan) => scan.id !== id
+			);
+			dbUserInfo.recentScans = dbUserInfo.recentScans.map((scan) => {
+				if (scan.id === id) scan.saved = false;
+				return scan;
+			});
+
+			await setDoc(docRef, dbUserInfo);
+			setUserInfo(dbUserInfo);
+		} catch (err) {
+			alert(
+				"Sorry! We had an unexpected problem trying to update the save status of this product. Please try again."
+			);
+			saveMessageAnimation.value = withTiming(0, {
+				duration: 250,
+				easing: Easing.inOut(Easing.quad),
+			});
+			return;
+		}
+
+		setSaveStatusUpdating(false);
 		setTimeout(() => {
 			saveMessageAnimation.value = withTiming(0, {
 				duration: 250,
@@ -74,8 +116,10 @@ const ProfileScreen = ({ navigation }) => {
 
 	// Processing Recent Scans into Components
 	const renderSavedProducts = () => {
+		if (!userInfo?.savedProducts || userInfo?.savedProducts?.length === 0) {
+			return <NoDataFound />;
+		}
 		const rows = [];
-		if (!userInfo?.savedProducts) return null;
 
 		for (let i = 0; i < userInfo?.savedProducts.length; i += 2) {
 			const item1 = userInfo?.savedProducts[i];
@@ -93,9 +137,11 @@ const ProfileScreen = ({ navigation }) => {
 						barcode={item1.barcode}
 						avoid={item1.avoid}
 						saved={item1.saved}
-						// setProduct={setProduct}
 						navigation={navigation}
-						onSaveButtonPressed={onSaveButtonPressed}
+						saveStatusUpdating={saveStatusUpdating}
+						onSaveButtonPressed={() => {
+							onSaveButtonPressed(item1.id);
+						}}
 					/>
 					{item2 && (
 						<ProductListing
@@ -104,9 +150,11 @@ const ProfileScreen = ({ navigation }) => {
 							barcode={item2.barcode}
 							avoid={item2.avoid}
 							saved={item2.saved}
-							// setProduct={setProduct}
 							navigation={navigation}
-							onSaveButtonPressed={onSaveButtonPressed}
+							saveStatusUpdating={saveStatusUpdating}
+							onSaveButtonPressed={() => {
+								onSaveButtonPressed(item2.id);
+							}}
 						/>
 					)}
 				</View>
@@ -114,6 +162,24 @@ const ProfileScreen = ({ navigation }) => {
 		}
 
 		return rows;
+	};
+
+	const renderAllergies = () => {
+		const allergies = [];
+		if (!userInfo?.allergies || userInfo?.allergies?.length === 0)
+			return <NoDataFound />;
+
+		for (let i = 0; i < userInfo?.allergies?.length; i++) {
+			allergies.push(
+				<View key={i} style={styles.ingredient}>
+					<Text style={styles.ingredientText}>
+						{userInfo?.allergies[i].name}
+					</Text>
+				</View>
+			);
+		}
+
+		return allergies;
 	};
 
 	const animatedMenuStyle = useAnimatedStyle(() => ({
@@ -265,24 +331,7 @@ const ProfileScreen = ({ navigation }) => {
 									<Text style={styles.sectionHeader}>
 										{`${userInfo?.firstname}'s Allergies`}
 									</Text>
-									{userInfo?.allergies?.map(
-										(allergy, index) => {
-											return (
-												<View
-													key={index}
-													style={styles.ingredient}
-												>
-													<Text
-														style={
-															styles.ingredientText
-														}
-													>
-														{allergy.name}
-													</Text>
-												</View>
-											);
-										}
-									)}
+									{renderAllergies()}
 								</>
 							)}
 						</View>
@@ -384,7 +433,7 @@ const styles = StyleSheet.create({
 	ingredientText: {
 		width: "100%",
 		textAlign: "left",
-		fontSize: 18,
+		fontSize: 14,
 		color: colors.navy,
 		fontFamily: "Inter-Medium",
 	},

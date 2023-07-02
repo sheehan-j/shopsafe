@@ -11,6 +11,8 @@ import { Camera } from "expo-camera";
 import { useState, useEffect, useRef } from "react";
 import { Dimensions } from "react-native";
 import { useUserStore } from "../util/userStore";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import Modal from "react-native-modal";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
@@ -25,7 +27,10 @@ const ScanModal = ({
 	productNotFound,
 	setProductNotFound,
 }) => {
-	const addRecentScan = useUserStore((state) => state.addRecentScan);
+	const { userInfo, setUserInfo } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+		setUserInfo: state.setUserInfo,
+	}));
 	const { height } = Dimensions.get("window");
 	const [aspectRatio, setAspectRatio] = useState(null);
 	const cameraRef = useRef(null);
@@ -64,7 +69,7 @@ const ScanModal = ({
 		})();
 	}, []);
 
-	if (!hasPermission || !permission || !permission.granted) {
+	if (!hasPermission || !permission || !permission?.granted) {
 		return (
 			<View>
 				<Text>Grant camera permissions to this app.</Text>
@@ -83,14 +88,49 @@ const ScanModal = ({
 			return;
 		}
 
-		// TODO: Update this to reflect rear result})
-		addRecentScan({
-			image_url: result.image_url,
-			name: result.name,
-			barcode: data,
-			avoid: result.avoid,
-			saved: false,
-		});
+		try {
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+
+			if (docSnap.exists()) {
+				dbUserInfo = docSnap.data();
+			} else {
+				alert(
+					"Sorry! We ran into an error processing this barcode. Please try again."
+				);
+				return;
+			}
+
+			// Add the new scan into user's existing list of sans
+			dbUserInfo.recentScans = [
+				...dbUserInfo.recentScans,
+				{
+					id: dbUserInfo.scanCount + 1,
+					image_url: result.image_url,
+					name: result.name,
+					barcode: data,
+					avoid: result.avoid,
+					saved: false,
+				},
+			];
+			dbUserInfo.scanCount = dbUserInfo.scanCount + 1;
+
+			// Update user info in db
+			await setDoc(docRef, dbUserInfo);
+			setUserInfo(dbUserInfo);
+		} catch (err) {
+			console.log(err);
+			alert(
+				"Sorry! We ran into an error processing this barcode. Please try again."
+			);
+			return;
+		}
+
 		setProduct(result);
 		setScanModalVisible(false);
 	};

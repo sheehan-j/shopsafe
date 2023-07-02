@@ -71,7 +71,6 @@ const LoginScreen = ({ navigation }) => {
 
 			if (docSnap.exists()) {
 				console.log("User info loaded.");
-				console.log(docSnap.data());
 				setUserInfo(docSnap.data());
 			} else {
 				// Reset user

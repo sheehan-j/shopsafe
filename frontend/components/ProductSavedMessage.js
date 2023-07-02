@@ -5,7 +5,7 @@ const ProductSavedMessage = ({ bgColor, fontColor }) => {
 	return (
 		<View style={{ ...styles.container, backgroundColor: bgColor }}>
 			<Text style={{ ...styles.text, color: fontColor }}>
-				Product save status updated.
+				Product save status updating.
 			</Text>
 		</View>
 	);

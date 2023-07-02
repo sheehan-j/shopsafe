@@ -11,6 +11,7 @@ const ProductListing = ({
 	setProduct,
 	navigation,
 	onSaveButtonPressed,
+	saveStatusUpdating,
 }) => {
 	const onPress = async () => {
 		// const result = await searchApi.search(barcode);
@@ -36,7 +37,12 @@ const ProductListing = ({
 						style={styles.icon}
 					/>
 				)}
-				<Pressable onPress={onSaveButtonPressed} hitSlop={10}>
+				<Pressable
+					onPress={
+						saveStatusUpdating ? () => {} : onSaveButtonPressed
+					}
+					hitSlop={10}
+				>
 					{saved && (
 						<Image
 							source={require("../assets/img/save_icon_pressed.png")}

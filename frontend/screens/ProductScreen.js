@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
 	ingredientText: {
 		width: "100%",
 		textAlign: "left",
-		fontSize: 18,
+		fontSize: 14,
 		color: colors.navy,
 		fontFamily: "Inter-Medium",
 	},

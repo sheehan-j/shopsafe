@@ -9,7 +9,9 @@ import Animated, {
 	Easing,
 	interpolate,
 } from "react-native-reanimated";
-import { FIREBASE_AUTH } from "../firebaseConfig";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUserStore } from "../util/userStore";
 
 import colors from "../config/colors";
 import Navbar from "../components/Navbar";
@@ -19,21 +21,20 @@ import ProductListing from "../components/ProductListing";
 
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import ProductSavedMessage from "../components/ProductSavedMessage";
-import { useUserStore } from "../util/userStore";
-import { shallow } from "zustand/shallow";
+import NoDataFound from "../components/NoDataFound";
 
 const HomeScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
-
-	const { userInfo } = useUserStore((state) => ({
+	const { userInfo, setUserInfo } = useUserStore((state) => ({
 		userInfo: state.userInfo,
+		setUserInfo: state.setUserInfo,
 	}));
-
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
 	const [productNotFound, setProductNotFound] = useState(false);
 	const [scanned, setScanned] = useState(false);
+	const [saveStatusUpdating, setSaveStatusUpdating] = useState(false);
 
 	useEffect(() => {
 		if (route.params?.openScanModal) {
@@ -57,13 +58,73 @@ const HomeScreen = ({ navigation, route }) => {
 		setProductNotFound(false);
 	};
 
-	// Handle save message eanimation
-	const onSaveButtonPressed = () => {
+	// Save product logic
+	const onSaveButtonPressed = async (id) => {
+		// Start animation
+		setSaveStatusUpdating(true);
 		saveMessageAnimation.value = withTiming(1, {
 			duration: 250,
 			easing: Easing.inOut(Easing.quad),
 		});
 
+		try {
+			// Retrieve user info data from DB
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+			if (docSnap.exists()) {
+				dbUserInfo = docSnap.data();
+			} else {
+				throw new Error("Document not found.");
+			}
+
+			let originalSaveStatus;
+			let targetScan = null;
+			dbUserInfo.recentScans = dbUserInfo.recentScans.map((scan) => {
+				if (scan.id === id) {
+					targetScan = scan;
+					originalSaveStatus = scan.saved;
+					scan.saved = !scan.saved;
+				}
+				return scan;
+			});
+
+			if (!targetScan) {
+				throw new Error(
+					"ID of scan where save button was pressed was not found in recentScans for the user. This should never happen."
+				);
+			}
+
+			if (originalSaveStatus === true) {
+				dbUserInfo.savedProducts = dbUserInfo.savedProducts.filter(
+					(scan) => scan.id !== id
+				);
+			} else {
+				dbUserInfo.savedProducts = [
+					...dbUserInfo.savedProducts,
+					targetScan,
+				];
+			}
+
+			await setDoc(docRef, dbUserInfo);
+			setUserInfo(dbUserInfo);
+		} catch (err) {
+			alert(
+				"Sorry! We had an unexpected problem trying to update the save status of this product. Please try again."
+			);
+			saveMessageAnimation.value = withTiming(0, {
+				duration: 250,
+				easing: Easing.inOut(Easing.quad),
+			});
+			return;
+		}
+
+		setSaveStatusUpdating(false);
+		// End animation after 1.5 second delay
 		setTimeout(() => {
 			saveMessageAnimation.value = withTiming(0, {
 				duration: 250,
@@ -85,8 +146,10 @@ const HomeScreen = ({ navigation, route }) => {
 
 	// Processing Recent Scans into Components
 	const renderRecentScans = () => {
+		if (!userInfo?.recentScans || userInfo?.recentScans?.length === 0) {
+			return <NoDataFound />;
+		}
 		const rows = [];
-		if (!userInfo?.recentScans) return null;
 
 		for (let i = 0; i < userInfo?.recentScans.length; i += 2) {
 			const item1 = userInfo?.recentScans[i];
@@ -106,7 +169,10 @@ const HomeScreen = ({ navigation, route }) => {
 						saved={item1.saved}
 						setProduct={setProduct}
 						navigation={navigation}
-						onSaveButtonPressed={onSaveButtonPressed}
+						saveStatusUpdating={saveStatusUpdating}
+						onSaveButtonPressed={() =>
+							onSaveButtonPressed(item1.id)
+						}
 					/>
 					{item2 && (
 						<ProductListing
@@ -117,7 +183,9 @@ const HomeScreen = ({ navigation, route }) => {
 							saved={item2.saved}
 							setProduct={setProduct}
 							navigation={navigation}
-							onSaveButtonPressed={onSaveButtonPressed}
+							onSaveButtonPressed={() =>
+								onSaveButtonPressed(item2.id)
+							}
 						/>
 					)}
 				</View>
