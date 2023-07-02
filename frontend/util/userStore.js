@@ -56,12 +56,6 @@ const store = (set) => ({
 	setUser: (newUser) => set(() => ({ user: newUser })),
 	userInfo: null,
 	setUserInfo: (newUserInfo) => set(() => ({ userInfo: newUserInfo })),
-	totalScans: 12,
-	productsSaved: 6,
-	allergiesAdded: 3,
-	recentScans: defaultRecentScans,
-	addRecentScan: (newScan) =>
-		set((state) => ({ recentScans: [...state.recentScans, newScan] })),
 });
 
 export const useUserStore = create(store);
