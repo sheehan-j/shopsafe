@@ -46,6 +46,7 @@ const FinishSetupScreen = ({ navigation }) => {
 
 		// Once user is created, add record for userInfo
 		try {
+			// Filered out the added field from each ingredient, not needed in db
 			const filteredAddedIngredients = state.setupIngredients.map(
 				(ingredient) => {
 					const { added, ...rest } = ingredient; // Destructure, remove added field
@@ -53,6 +54,7 @@ const FinishSetupScreen = ({ navigation }) => {
 				}
 			);
 
+			// Structure user document to be added to Firestore
 			const newUserInfo = {
 				firstname: state.signupFirstname,
 				lastname: state.signupLastname,
@@ -60,6 +62,7 @@ const FinishSetupScreen = ({ navigation }) => {
 				allergies: filteredAddedIngredients,
 				recentScans: [],
 				savedProducts: [],
+				scanCount: 0,
 			};
 			await setDoc(
 				doc(FIRESTORE, "users", auth.currentUser.uid),
