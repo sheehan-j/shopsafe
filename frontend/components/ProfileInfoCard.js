@@ -13,14 +13,9 @@ import { FIREBASE_AUTH } from "../firebaseConfig";
 
 const ProfileInfoCard = ({ navigation }) => {
 	const email = FIREBASE_AUTH?.currentUser?.email;
-	const { userInfo, totalScans, productsSaved, allergiesAdded } =
-		useUserStore((state) => ({
-			userInfo: state.userInfo,
-			userEmail: state.userEmail,
-			totalScans: state.totalScans,
-			productsSaved: state.productsSaved,
-			allergiesAdded: state.allergiesAdded,
-		}));
+	const { userInfo } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+	}));
 
 	return (
 		<View style={styles.wrapper}>
@@ -35,17 +30,17 @@ const ProfileInfoCard = ({ navigation }) => {
 				<Text style={styles.email}>{email}</Text>
 				<View style={styles.statsContainer}>
 					<ProfileInfoCardStatistic
-						number={totalScans}
+						number={userInfo?.scanCount}
 						label={"Total\nScans"}
 						margin={false}
 					/>
 					<ProfileInfoCardStatistic
-						number={productsSaved}
+						number={userInfo?.savedProducts?.length}
 						label={"Products\nSaved"}
 						margin={true}
 					/>
 					<ProfileInfoCardStatistic
-						number={allergiesAdded}
+						number={userInfo?.allergies?.length}
 						label={"Allergies\nAdded"}
 						margin={false}
 					/>
