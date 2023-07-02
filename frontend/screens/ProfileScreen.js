@@ -6,7 +6,7 @@ import {
 	Dimensions,
 	Pressable,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
 	useSharedValue,
@@ -33,15 +33,18 @@ const ProfileScreen = ({ navigation }) => {
 	const translateMenu = useSharedValue(0);
 	const translateMenuIndicator = useSharedValue(0);
 	const [activePage, setActivePage] = useState("saved");
-	const recentScans = useUserStore((state) => state.recentScans);
-	const [allergies, setAllergies] = useState([
-		{
-			name: "test1",
-		},
-		{
-			name: "test2",
-		},
-	]);
+	const [savedPageVisible, setSavedPageVisible] = useState(true);
+	const [allergiesPageVisible, setAllergiesPageVisible] = useState(false);
+	const { userInfo } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+	}));
+	const scrollRef = useRef();
+	const scrollToTop = () => {
+		scrollRef.current?.scrollTo({
+			y: 0,
+			animated: true,
+		});
+	};
 
 	// Handle save message eanimation
 	const onSaveButtonPressed = () => {
@@ -70,13 +73,16 @@ const ProfileScreen = ({ navigation }) => {
 	});
 
 	// Processing Recent Scans into Components
-	const renderRecentScans = () => {
+	const renderSavedProducts = () => {
 		const rows = [];
-		for (let i = 0; i < recentScans.length; i += 2) {
-			const item1 = recentScans[i];
+		if (!userInfo?.savedProducts) return null;
+
+		for (let i = 0; i < userInfo?.savedProducts.length; i += 2) {
+			const item1 = userInfo?.savedProducts[i];
 
 			let item2;
-			if (i + 1 < recentScans.length) item2 = recentScans[i + 1];
+			if (i + 1 < userInfo?.savedProducts.length)
+				item2 = userInfo?.savedProducts[i + 1];
 			else item2 = null;
 
 			rows.push(
@@ -120,18 +126,28 @@ const ProfileScreen = ({ navigation }) => {
 
 	const setSavedActive = () => {
 		setActivePage("saved");
+		setSavedPageVisible(true);
+		scrollToTop();
 		translateMenu.value = withTiming(0, { duration: 300 });
 		translateMenuIndicator.value = withTiming(0, {
 			duration: 300,
 		});
+		setTimeout(() => {
+			setAllergiesPageVisible(false);
+		}, 300);
 	};
 
 	const setAllergiesActive = () => {
 		setActivePage("allergies");
+		setAllergiesPageVisible(true);
+		scrollToTop();
 		translateMenu.value = withTiming(-screenWidth, { duration: 300 });
 		translateMenuIndicator.value = withTiming(screenWidth / 2, {
 			duration: 300,
 		});
+		setTimeout(() => {
+			setSavedPageVisible(false);
+		}, 300);
 	};
 
 	const handleSwipe = (event) => {
@@ -144,124 +160,139 @@ const ProfileScreen = ({ navigation }) => {
 	};
 
 	return (
-		<>
-			{/* Set status bar content to dark */}
+		<View
+			style={{
+				...styles.container,
+				paddingTop: statusBarHeight,
+			}}
+		>
 			<StatusBar style={"dark"} />
-			<View
-				style={{
-					...styles.container,
-					paddingTop: statusBarHeight,
-				}}
+
+			<Animated.View
+				style={[
+					slideDownAnimation,
+					styles.savedMessageContainer,
+					{ zIndex: 100 }, // To appear above CustomStatusBar
+				]}
 			>
-				<Animated.View
-					style={[slideDownAnimation, styles.savedMessageContainer]}
+				<ProductSavedMessage
+					fontColor={"white"}
+					bgColor={colors.green}
+				/>
+			</Animated.View>
+
+			<CustomStatusBar color={"white"} border={false} />
+
+			<ScrollView
+				style={{ flex: 1 }}
+				showsVerticalScrollIndicator={false}
+				ref={scrollRef}
+			>
+				<View
+					style={{
+						width: "100%",
+						backgroundColor: "white",
+						paddingTop: 20,
+					}}
 				>
-					<ProductSavedMessage
-						fontColor={"white"}
-						bgColor={colors.green}
-					/>
-				</Animated.View>
-
-				<CustomStatusBar color={"white"} border={false} />
-
-				<ScrollView
-					style={{ flex: 1, backgroundColor: "white" }}
-					showsVerticalScrollIndicator={false}
-				>
-					<View
-						style={{
-							width: "100%",
-							backgroundColor: "white",
-							paddingTop: 20,
-						}}
-					>
-						<ProfileInfoCard navigation={navigation} />
-						<View style={styles.menuControlsContainer}>
-							<Pressable
-								style={styles.menuControl}
-								onPress={
-									activePage !== "saved"
-										? setSavedActive
-										: () => {}
-								}
-							>
-								<Text style={styles.menuControlText}>
-									Saved
-								</Text>
-							</Pressable>
-							<Pressable
-								style={styles.menuControl}
-								onPress={
-									activePage !== "allergies"
-										? setAllergiesActive
-										: () => {}
-								}
-							>
-								<Text style={styles.menuControlText}>
-									Allergies
-								</Text>
-							</Pressable>
-							<Animated.View
-								style={[
-									styles.activeMenuIndicator,
-									animatedMenuIndicatorStyle,
-								]}
-							/>
-						</View>
-					</View>
-
-					<PanGestureHandler
-						onGestureEvent={handleSwipe}
-						activeOffsetX={[-50, 50]}
-					>
+					<ProfileInfoCard navigation={navigation} />
+					<View style={styles.menuControlsContainer}>
+						<Pressable
+							style={styles.menuControl}
+							onPress={
+								activePage !== "saved"
+									? setSavedActive
+									: () => {}
+							}
+						>
+							<Text style={styles.menuControlText}>Saved</Text>
+						</Pressable>
+						<Pressable
+							style={styles.menuControl}
+							onPress={
+								activePage !== "allergies"
+									? setAllergiesActive
+									: () => {}
+							}
+						>
+							<Text style={styles.menuControlText}>
+								Allergies
+							</Text>
+						</Pressable>
 						<Animated.View
 							style={[
-								{
-									flex: 1,
-									flexDirection: "row",
-								},
-								animatedMenuStyle,
+								styles.activeMenuIndicator,
+								animatedMenuIndicatorStyle,
 							]}
-						>
-							{/* SAVED SECTION */}
-							<View style={styles.menuContainer}>
-								<Text style={styles.sectionHeader}>
-									Saved Products
-								</Text>
-								<View style={styles.recentScansContainer}>
-									{renderRecentScans()}
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.menuContainer,
-									paddingHorizontal: 25,
-								}}
-							>
-								<Text style={styles.sectionHeader}>
-									Jordan's Allergies
-								</Text>
-								{allergies.map((allergy, index) => {
-									return (
-										<View
-											key={index}
-											style={styles.ingredient}
-										>
-											<Text style={styles.ingredientText}>
-												{allergy.name}
-											</Text>
-										</View>
-									);
-								})}
-							</View>
-						</Animated.View>
-					</PanGestureHandler>
-				</ScrollView>
+						/>
+					</View>
+				</View>
 
-				{/* NAVBAR */}
-				<Navbar navigation={navigation} currScreen={"Profile"} />
-			</View>
-		</>
+				<PanGestureHandler
+					onGestureEvent={handleSwipe}
+					activeOffsetX={[-50, 50]}
+				>
+					<Animated.View
+						style={[
+							{
+								flex: 1,
+								flexDirection: "row",
+							},
+							animatedMenuStyle,
+						]}
+					>
+						{/* SAVED SECTION */}
+						<View style={styles.menuContainer}>
+							{savedPageVisible && (
+								<>
+									<Text style={styles.sectionHeader}>
+										Saved Products
+									</Text>
+									<View style={styles.recentScansContainer}>
+										{renderSavedProducts()}
+									</View>
+								</>
+							)}
+						</View>
+						<View
+							style={{
+								...styles.menuContainer,
+								paddingHorizontal: 25,
+							}}
+						>
+							{allergiesPageVisible && (
+								<>
+									<Text style={styles.sectionHeader}>
+										{`${userInfo?.firstname}'s Allergies`}
+									</Text>
+									{userInfo?.allergies?.map(
+										(allergy, index) => {
+											return (
+												<View
+													key={index}
+													style={styles.ingredient}
+												>
+													<Text
+														style={
+															styles.ingredientText
+														}
+													>
+														{allergy.name}
+													</Text>
+												</View>
+											);
+										}
+									)}
+								</>
+							)}
+						</View>
+					</Animated.View>
+				</PanGestureHandler>
+			</ScrollView>
+
+			{/* NAVBAR */}
+			<Navbar navigation={navigation} currScreen={"Profile"} />
+		</View>
 	);
 };
 
@@ -331,7 +362,7 @@ const styles = StyleSheet.create({
 	menuContainer: {
 		width: "100%",
 		paddingBottom: 160, // Accounting for navbar
-		backgroundColor: colors.appBackground,
+		// backgroundColor: colors.appBackground,
 		paddingTop: 25,
 		paddingHorizontal: 25,
 	},

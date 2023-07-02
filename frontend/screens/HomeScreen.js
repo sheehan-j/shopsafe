@@ -26,9 +26,8 @@ const HomeScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
 
-	const { userInfo, recentScans } = useUserStore((state) => ({
+	const { userInfo } = useUserStore((state) => ({
 		userInfo: state.userInfo,
-		recentScans: state.recentScans,
 	}));
 
 	const [scanModalVisible, setScanModalVisible] = useState(false);
@@ -87,11 +86,14 @@ const HomeScreen = ({ navigation, route }) => {
 	// Processing Recent Scans into Components
 	const renderRecentScans = () => {
 		const rows = [];
-		for (let i = 0; i < recentScans.length; i += 2) {
-			const item1 = recentScans[i];
+		if (!userInfo?.recentScans) return null;
+
+		for (let i = 0; i < userInfo?.recentScans.length; i += 2) {
+			const item1 = userInfo?.recentScans[i];
 
 			let item2;
-			if (i + 1 < recentScans.length) item2 = recentScans[i + 1];
+			if (i + 1 < userInfo?.recentScans.length)
+				item2 = userInfo?.recentScans[i + 1];
 			else item2 = null;
 
 			rows.push(
