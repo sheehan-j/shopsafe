@@ -6,10 +6,11 @@ import {
 	Pressable,
 	PixelRatio,
 } from "react-native";
-import colors from "../config/colors";
 import { useUserStore } from "../util/userStore";
-import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
 import { FIREBASE_AUTH } from "../firebaseConfig";
+import { FontAwesome } from "@expo/vector-icons";
+import colors from "../config/colors";
+import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
 
 const ProfileInfoCard = ({ navigation }) => {
 	const email = FIREBASE_AUTH?.currentUser?.email;
@@ -20,6 +21,15 @@ const ProfileInfoCard = ({ navigation }) => {
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.container}>
+				<Pressable
+					style={styles.settingsButton}
+					hitSlop={30}
+					onPress={() => {
+						navigation.navigate("Settings");
+					}}
+				>
+					<FontAwesome name="gear" size={24} color={colors.gray} />
+				</Pressable>
 				<Image
 					source={require("../assets/img/profile_picture.jpg")}
 					style={styles.profilePicture}
@@ -119,5 +129,12 @@ const styles = StyleSheet.create({
 		fontFamily: "Inter-Medium",
 		fontSize: 14,
 		color: "white",
+	},
+	settingsButton: {
+		position: "absolute",
+		right: 10,
+		top: 10,
+		height: 24,
+		width: 24,
 	},
 });

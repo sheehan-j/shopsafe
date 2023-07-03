@@ -15,6 +15,7 @@ import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
 import FinishSetupScreen from "./screens/FinishSetupScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 
 // Stop splash screen from being hidden while the app is loading
 SplashScreen.preventAutoHideAsync();
@@ -96,9 +97,7 @@ const App = () => {
 
 	useEffect(() => {
 		onAuthStateChanged(FIREBASE_AUTH, (new_user) => {
-			if (new_user) {
-				setUser(new_user);
-			}
+			setUser(new_user);
 		});
 	}, []);
 
@@ -172,6 +171,14 @@ const App = () => {
 							options={{
 								gestureEnabled: "false",
 								animation: "none",
+							}}
+						/>
+						<Stack.Screen
+							name="Settings"
+							component={SettingsScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
 							}}
 						/>
 						<Stack.Screen
