@@ -12,6 +12,7 @@ import Animated, {
 import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useUserStore } from "../util/userStore";
+import { config } from "../config/constants";
 
 import colors from "../config/colors";
 import Navbar from "../components/Navbar";
@@ -104,6 +105,13 @@ const HomeScreen = ({ navigation, route }) => {
 					(scan) => scan.id !== id
 				);
 			} else {
+				if (
+					dbUserInfo.savedProducts.length ===
+					config.MAX_SAVED_PRODUCTS
+				) {
+					throw new Error("Max saved products exceeded");
+				}
+
 				dbUserInfo.savedProducts = [
 					...dbUserInfo.savedProducts,
 					targetScan,
@@ -113,24 +121,25 @@ const HomeScreen = ({ navigation, route }) => {
 			await setDoc(docRef, dbUserInfo);
 			setUserInfo(dbUserInfo);
 		} catch (err) {
-			alert(
-				"Sorry! We had an unexpected problem trying to update the save status of this product. Please try again."
-			);
-			saveMessageAnimation.value = withTiming(0, {
-				duration: 250,
-				easing: Easing.inOut(Easing.quad),
-			});
-			return;
+			if (err.message === "Max saved products exceeded") {
+				alert(
+					`Sorry! You can only have ${config.MAX_SAVED_PRODUCTS} saved products at a time. Please unsave some other products to save new ones.`
+				);
+			} else {
+				alert(
+					"Sorry! We had an unexpected problem trying to update the save status of this product. Please try again."
+				);
+			}
+		} finally {
+			setSaveStatusUpdating(false);
+			// End animation after 1.5 second delay
+			setTimeout(() => {
+				saveMessageAnimation.value = withTiming(0, {
+					duration: 250,
+					easing: Easing.inOut(Easing.quad),
+				});
+			}, 1500);
 		}
-
-		setSaveStatusUpdating(false);
-		// End animation after 1.5 second delay
-		setTimeout(() => {
-			saveMessageAnimation.value = withTiming(0, {
-				duration: 250,
-				easing: Easing.inOut(Easing.quad),
-			});
-		}, 1500);
 	};
 
 	const slideDownAnimation = useAnimatedStyle(() => {

@@ -12,29 +12,100 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import useStatusBarHeight from "../util/useStatusBarHeight";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 import CustomStatusBar from "../components/CustomStatusBar";
 import colors from "../config/colors";
 import ProductIngredientsOkay from "../components/ProductIngredientsOkay";
 import ProductIngredientsBad from "../components/ProductIngredientsBad";
 import searchApi from "../api/searchApi";
+import { useUserStore } from "../util/userStore";
 
 const ProductScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const [product, setProduct] = useState(null);
 	const [loading, setLoading] = useState(true);
+	const setUserInfo = useUserStore((state) => state.setUserInfo);
 
 	useEffect(() => {
 		const loadProduct = async () => {
-			if (route.params.productLoaded) {
+			if (route.params?.productLoaded) {
 				setProduct(route.params.product);
-				setLoading(false); // TODO: uncomment;
-			} else {
-				const result = await searchApi.search(route.params.barcode);
+				setLoading(false);
+				return;
+			}
+
+			// If the product is not already loaded (i.e. the product was clicked from a list rather than scanned)
+			// load user info from the DB and process
+			try {
+				// Load user allergies from DB
+				const docRef = doc(
+					FIRESTORE,
+					"users",
+					FIREBASE_AUTH.currentUser.uid
+				);
+				const docSnap = await getDoc(docRef);
+				let dbUserInfo;
+
+				if (docSnap.exists()) {
+					dbUserInfo = docSnap.data();
+				} else {
+					throw new Error("User record not found in DB.");
+				}
+
+				const result = await searchApi.search(
+					route.params.barcode,
+					dbUserInfo.allergies
+				);
+
+				// Update DB info if avoid status has changed (in case ingredients have OpenFood have changed
+				// since this product was first scanned
+				let changed = false;
+				const checkRecentScans = dbUserInfo.recentScans.map((scan) => {
+					if (
+						scan.barcode === route.params.barcode &&
+						scan.avoid !== result.avoid
+					) {
+						scan.avoid = result.avoid;
+						changed = true;
+					}
+					return scan;
+				});
+				const checkSavedProducts = dbUserInfo.savedProducts.map(
+					(scan) => {
+						if (
+							scan.barcode === route.params.barcode &&
+							scan.avoid !== result.avoid
+						) {
+							scan.avoid = result.avoid;
+							changed = true;
+						}
+						return scan;
+					}
+				);
+
+				// If there was a change in the avoid status of the product, upate the user's record in DB
+				if (changed) {
+					console.log(
+						"Updating user info in DB (changed was found in 'avoid' status for this product)."
+					);
+					dbUserInfo.recentScans = checkRecentScans;
+					dbUserInfo.savedProducts = checkSavedProducts;
+					await setDoc(docRef, dbUserInfo);
+					setUserInfo(dbUserInfo);
+				}
+
 				setProduct(result);
 				setTimeout(() => {
-					setLoading(false); // TODO: uncomment;
+					setLoading(false);
 				}, 1000);
+			} catch (err) {
+				console.error(err);
+				alert(
+					"Sorry! We ran into an issue trying to load this product. Please try again later."
+				);
+				navigation.pop();
 			}
 		};
 
@@ -301,7 +372,7 @@ const styles = StyleSheet.create({
 	},
 	ingredientBadText: {
 		textAlign: "left",
-		fontSize: 18,
+		fontSize: 14,
 		color: colors.red,
 		fontFamily: "Inter-Medium",
 	},

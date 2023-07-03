@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Asset } from "expo-asset";
 import { onAuthStateChanged } from "firebase/auth";
 import { FIREBASE_AUTH } from "./firebaseConfig";
+import { useUserStore } from "./util/userStore";
 import * as SplashScreen from "expo-splash-screen";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
@@ -14,7 +15,6 @@ import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
 import FinishSetupScreen from "./screens/FinishSetupScreen";
-import { useUserStore } from "./util/userStore";
 
 // Stop splash screen from being hidden while the app is loading
 SplashScreen.preventAutoHideAsync();
@@ -31,7 +31,7 @@ function cacheImages(images) {
 	});
 }
 
-export default App = () => {
+const App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
 	const { user, userInfo, setUser } = useUserStore((state) => ({
 		user: state.user,
@@ -107,72 +107,94 @@ export default App = () => {
 	}
 
 	return (
-		<>
-			<NavigationContainer>
-				<Stack.Navigator
-					screenOptions={{
-						headerShown: false,
-					}}
-				>
-					{(!user || !userInfo) && (
-						<>
-							<Stack.Screen
-								name="Login"
-								component={LoginScreen}
-							/>
-							<Stack.Screen
-								name="Signup"
-								component={SignupScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-							<Stack.Screen
-								name="AllergiesSetupMessage"
-								component={AllergiesSetupMessageScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-							<Stack.Screen
-								name="SetupAllergies"
-								component={EditAllergiesScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-							<Stack.Screen
-								name="FinishSetup"
-								component={FinishSetupScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-						</>
-					)}
-					{user && userInfo && (
-						<>
-							<Stack.Screen
-								name="Home"
-								component={HomeScreen}
-								// options={{
-								// 	animation: "none",
-								// }}
-								options={{ animation: "slide_from_right" }}
-							/>
-							<Stack.Screen
-								name="Profile"
-								component={ProfileScreen}
-								options={{
-									animation: "none",
-								}}
-							/>
-							<Stack.Screen
-								name="Product"
-								component={ProductScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-							<Stack.Screen
-								name="EditAllergies"
-								component={EditAllergiesScreen}
-								options={{ animation: "slide_from_right" }}
-							/>
-						</>
-					)}
-				</Stack.Navigator>
-			</NavigationContainer>
-		</>
+		<NavigationContainer>
+			<Stack.Navigator
+				screenOptions={{
+					headerShown: false,
+				}}
+			>
+				{(!user || !userInfo) && (
+					<>
+						<Stack.Screen
+							name="Login"
+							component={LoginScreen}
+							options={{
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="Signup"
+							component={SignupScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="AllergiesSetupMessage"
+							component={AllergiesSetupMessageScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="SetupAllergies"
+							component={EditAllergiesScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="FinishSetup"
+							component={FinishSetupScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+					</>
+				)}
+				{user && userInfo && (
+					<>
+						<Stack.Screen
+							name="Home"
+							component={HomeScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="Profile"
+							component={ProfileScreen}
+							options={{
+								gestureEnabled: "false",
+								animation: "none",
+							}}
+						/>
+						<Stack.Screen
+							name="Product"
+							component={ProductScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+						<Stack.Screen
+							name="EditAllergies"
+							component={EditAllergiesScreen}
+							options={{
+								animation: "slide_from_right",
+								orientation: "portrait_up",
+							}}
+						/>
+					</>
+				)}
+			</Stack.Navigator>
+		</NavigationContainer>
 	);
 };
+
+export default App;

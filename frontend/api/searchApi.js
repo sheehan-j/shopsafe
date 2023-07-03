@@ -12,7 +12,7 @@ const testAllergies = [
 	},
 ];
 
-exports.search = async (barcode) => {
+exports.search = async (barcode, allergies) => {
 	const SEARCH_URL = config.FOOD_API_BASE + barcode;
 	console.log("Requesting OpenFood API at " + SEARCH_URL);
 
@@ -35,7 +35,7 @@ exports.search = async (barcode) => {
 	if (result.status == 1 && result?.product?.ingredients) {
 		// Compare product ingredients against user allergies
 		const processedIngredients = processIngredients(
-			testAllergies,
+			allergies,
 			result.product.ingredients
 		);
 

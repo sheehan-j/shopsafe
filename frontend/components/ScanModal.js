@@ -13,6 +13,7 @@ import { Dimensions } from "react-native";
 import { useUserStore } from "../util/userStore";
 import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { config } from "../config/constants";
 import Modal from "react-native-modal";
 import colors from "../config/colors";
 import searchApi from "../api/searchApi";
@@ -32,14 +33,37 @@ const ScanModal = ({
 		setUserInfo: state.setUserInfo,
 	}));
 	const { height } = Dimensions.get("window");
-	const [aspectRatio, setAspectRatio] = useState(null);
 	const cameraRef = useRef(null);
+	const [originalUserInfo, setOriginalUserInfo] = useState(null);
 	const [hasPermission, setHasPermission] = useState(false);
+	const [aspectRatio, setAspectRatio] = useState(null);
+	const [readyToClose, setReadyToClose] = useState(false);
 	const [permission, requestPermission] = Camera.useCameraPermissions(); // For android
 	// Have a separate state for modal visibility from productNotFound
 	// productNotFound signals the textbox to change, this signals modal visibility
 	const [productNotFoundModalVisible, setProductNotFoundModalVisible] =
 		useState(false);
+
+	useEffect(() => {
+		(async () => {
+			const { status } = await BarCodeScanner.requestPermissionsAsync();
+			setHasPermission(status === "granted");
+		})();
+	}, []);
+
+	// Capture the original state of user info so we can compare it
+	// and know when the page is ready to close
+	useEffect(() => {
+		setOriginalUserInfo(userInfo);
+	}, []);
+
+	// Once the readyToClose flag has been set to true and userInfo
+	// has finished updating, close the modal
+	useEffect(() => {
+		if (readyToClose && userInfo !== originalUserInfo) {
+			setScanModalVisible(false);
+		}
+	}, [userInfo, readyToClose]);
 
 	const getAspectRatio = async () => {
 		if (cameraRef.current && Platform.OS !== "ios") {
@@ -62,13 +86,6 @@ const ScanModal = ({
 		}
 	};
 
-	useEffect(() => {
-		(async () => {
-			const { status } = await BarCodeScanner.requestPermissionsAsync();
-			setHasPermission(status === "granted");
-		})();
-	}, []);
-
 	if (!hasPermission || !permission || !permission?.granted) {
 		return (
 			<View>
@@ -79,14 +96,7 @@ const ScanModal = ({
 
 	const handleBarCodeScanned = async ({ data }) => {
 		setScanned(true);
-		const result = await searchApi.search(data);
-
-		// If product not found was returned by API
-		if (result.status == 0) {
-			setProductNotFound(true);
-			setProductNotFoundModalVisible(true);
-			return;
-		}
+		let result; // Will store result from searchApi
 
 		try {
 			const docRef = doc(
@@ -100,15 +110,29 @@ const ScanModal = ({
 			if (docSnap.exists()) {
 				dbUserInfo = docSnap.data();
 			} else {
-				alert(
-					"Sorry! We ran into an error processing this barcode. Please try again."
-				);
+				throw new Error("User info not found in DB.");
+			}
+
+			// Get product data from API
+			result = await searchApi.search(data, dbUserInfo?.allergies);
+
+			// If product not found was returned by API
+			if (result.status == 0) {
+				setProductNotFound(true);
+				setProductNotFoundModalVisible(true);
 				return;
+			}
+
+			// If the user has reached 20 scans, remove the oldest
+			if (dbUserInfo.recentScans.length == config.MAX_RECENT_SCANS) {
+				dbUserInfo.recentScans.splice(
+					dbUserInfo.recentScans.length - 1,
+					1
+				);
 			}
 
 			// Add the new scan into user's existing list of sans
 			dbUserInfo.recentScans = [
-				...dbUserInfo.recentScans,
 				{
 					id: dbUserInfo.scanCount + 1,
 					image_url: result.image_url,
@@ -117,11 +141,13 @@ const ScanModal = ({
 					avoid: result.avoid,
 					saved: false,
 				},
+				...dbUserInfo.recentScans,
 			];
 			dbUserInfo.scanCount = dbUserInfo.scanCount + 1;
 
 			// Update user info in db
 			await setDoc(docRef, dbUserInfo);
+			setReadyToClose(true);
 			setUserInfo(dbUserInfo);
 		} catch (err) {
 			console.log(err);
@@ -131,8 +157,8 @@ const ScanModal = ({
 			return;
 		}
 
+		// Update the current product to be used on the product screen
 		setProduct(result);
-		setScanModalVisible(false);
 	};
 
 	return (
@@ -188,8 +214,8 @@ const ScanModal = ({
 							color: productNotFound ? colors.red : colors.green,
 						}}
 					>
-						{!product && !productNotFound && "Searching..."}
-						{product && !productNotFound && "Barcode detected"}
+						{!scanned && !productNotFound && "Searching..."}
+						{scanned && !productNotFound && "Barcode detected"}
 						{productNotFound && "Product not found"}
 					</Text>
 				</View>

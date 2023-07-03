@@ -9,19 +9,22 @@ import {
 	Keyboard,
 	ActivityIndicator,
 } from "react-native";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useState, useEffect, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
 	useSharedValue,
 	withTiming,
 	useAnimatedStyle,
 } from "react-native-reanimated";
-
-import useStatusBarHeight from "../util/useStatusBarHeight";
-import colors from "../config/colors";
-import useExtraPadding from "../util/useExtraPadding";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
 import { useSignupStore } from "../util/signupStore";
+import { useUserStore } from "../util/userStore";
+import searchApi from "../api/searchApi";
+import useStatusBarHeight from "../util/useStatusBarHeight";
+import useExtraPadding from "../util/useExtraPadding";
+
+import colors from "../config/colors";
 
 const EditAllergiesScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
@@ -29,26 +32,30 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	const pageSize = 30;
 	const [ingredients, setIngredients] = useState([]); // ALL ingredients
 	const [activeIngredients, setActiveIngredients] = useState([]); // Ingredinents being displayed
+	const [originalAdded, setOriginalAdded] = useState([]);
 	const [addedIngredients, setAddedIngredients] = useState([]); // Ingredients added by the user
-	const addedIngredientsRef = useRef(null); // For capturing current state of addedIngredients before navigate away
 	const [searchedIngredients, setSearchedIngredients] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	const [searching, setSearching] = useState(false); // Whether or not results are currently being filtered with a search term
 	const [page, setPage] = useState(0); // Tracks which page of ingredients is currently displayed (30 per page)
 	const [changed, setChanged] = useState(false);
-	const [originalAddedCount, setOriginalAddedCount] = useState(0);
 	const [firstProcess, setFirstProcess] = useState(true);
 	const [loading, setLoading] = useState(true);
+	const [submitting, setSubmitting] = useState(false);
+	const { userInfo, setUserInfo } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+		setUserInfo: state.setUserInfo,
+	}));
+	const [originalUserInfo, setOriginalUserInfo] = useState(null);
+
+	// State specifically used when this screen is part of the user setup process
 	const [readyToNavigate, setReadyToNavigate] = useState(false);
-	// Track setup ingredients in case the user switches between setup screens
 	const { setupIngredients, setSetupIngredients } = useSignupStore(
 		(state) => ({
 			setupIngredients: state.setupIngredients,
 			setSetupIngredients: state.setSetupIngredients,
 		})
 	);
-	// TODO: Change how added ingredients are counted during the process,
-	// Check whether they were already added when retrieving from db
 
 	// Load ingredients logic
 	useEffect(() => {
@@ -56,26 +63,57 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 			try {
 				// Get added ingredients
 				let existingAddedIngredients;
-				// If this screen is being used for profile setup, store the current state of setupIngredients
-				//
+
+				// If this screen is being used for profile setup, store the current state of setupIngredients (any ingredients already during setup)
+				// Also, if this is not first time setup, set the original ingredients so that we can determine
+				// whether a change has been made and the "Submit Changes" button can be enabled
 				if (route.params?.firstTimeSetup) {
 					existingAddedIngredients =
 						setupIngredients === null ? [] : setupIngredients;
 					setSetupIngredients(null);
-					setOriginalAddedCount(existingAddedIngredients.length);
 				} else {
-					// TODO: ADD FETCH TO DB
-					existingAddedIngredients = [];
-					setOriginalAddedCount(0);
+					// If this not first time setup, grab the user's allergies from Firestore
+					try {
+						const docRef = doc(
+							FIRESTORE,
+							"users",
+							FIREBASE_AUTH.currentUser.uid
+						);
+						const docSnap = await getDoc(docRef);
+						let dbUserInfo;
+
+						if (docSnap.exists()) {
+							dbUserInfo = docSnap.data();
+							setOriginalUserInfo(dbUserInfo); // For tracking when we can navigate away
+						} else {
+							throw new Error(
+								"User record was not found in DB. This should never happen."
+							);
+						}
+
+						existingAddedIngredients = dbUserInfo?.allergies;
+						setOriginalAdded(existingAddedIngredients);
+					} catch (err) {
+						console.error(err);
+						alert(
+							"Sorry! We ran into an issue trying to load your allergies. Please check your network connection and try again."
+						);
+						navigation.pop();
+					}
 				}
 				setAddedIngredients(existingAddedIngredients);
 
-				// Process existing added ingredient's indices
+				// Add an "added" field to each ingredient
 				const response = require("../assets/test.json");
 				response.tags.forEach((element) => {
-					element.added = false; // TODO: REMOVE THIS WHEN DB IS SETUP
-					if (existingAddedIngredients.includes(element)) {
+					if (
+						existingAddedIngredients.some(
+							(addedElement) => addedElement.id === element.id
+						)
+					) {
 						element.added = true;
+					} else {
+						element.added = false;
 					}
 				});
 
@@ -93,17 +131,25 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 		loadIngredients();
 	}, []);
 
-	// When an ingredient is added, calculate the difference between the current number
-	// of added ingredients is different from the original number
+	// When an ingredient is added, determine whether the current list of
+	// added ingreidents is different from the original list
 	// This determines whether the submit button is enabled/disabled
 	useEffect(() => {
-		addedIngredientsRef.current = addedIngredients;
-		setChanged(addedIngredients.length !== originalAddedCount);
-		if (addedIngredients.length !== originalAddedCount) {
-			fadeIn();
-		} else {
-			fadeOut();
-		}
+		const checkChanged = () => {
+			const newArr = addedIngredients.map((obj) => obj.name).sort();
+			const oldArr = originalAdded.map((obj) => obj.name).sort();
+
+			if (newArr.length !== oldArr.length) return true;
+
+			for (let i = 0; i < newArr.length; i++) {
+				if (newArr[i] !== oldArr[i]) return true;
+			}
+			return false;
+		};
+
+		let changed = checkChanged();
+		setChanged(changed);
+		changed ? fadeIn() : fadeOut();
 	}, [addedIngredients]);
 
 	// Process new set of ingredients when the page is updated by pagination controls
@@ -125,18 +171,116 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	// This way, we prevent navigation when the screen loads and allergies that have already
 	// been added during setup are loaded in setupIngredients
 	useEffect(() => {
-		if (readyToNavigate && setupIngredients !== null) {
+		if (
+			readyToNavigate &&
+			setupIngredients !== null &&
+			route.params?.firstTimeSetup
+		) {
 			setReadyToNavigate(false);
 			navigation.navigate("FinishSetup");
 		}
 	}, [setupIngredients, readyToNavigate]);
 
-	const handleSubmit = () => {
+	useEffect(() => {
+		// If userInfo has finished updating from its original state and the screen
+		// is ready to navigate away
+		if (readyToNavigate && userInfo !== originalUserInfo) {
+			setReadyToNavigate(false);
+			setSubmitting(false);
+			fadeIn();
+			navigation.pop();
+		}
+	}, [userInfo, readyToNavigate]);
+
+	const handleSubmit = async () => {
+		if (loading || submitting) return;
+		setSubmitting(true);
+		fadeOut();
+
 		if (route.params?.firstTimeSetup) {
 			setReadyToNavigate(true);
 			setSetupIngredients(addedIngredients);
-		} else {
-			navigation.navigate("FinishSetup");
+			setSubmitting(false);
+			fadeIn();
+			return;
+		}
+
+		// If page is currently in loading state or no changes have been made,
+		// do not execute the rest of this function
+		if (!changed) {
+			setSubmitting(false);
+			fadeIn();
+			return;
+		}
+
+		// If this not first time setup, update the DB and pop the navigation stack
+		try {
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+
+			if (docSnap.exists()) {
+				// Filtered out the added field from each added ingredient, unwanted in DB
+				dbUserInfo = docSnap.data();
+				dbUserInfo.allergies = addedIngredients.map((obj) => {
+					const { added, ...rest } = obj;
+					return rest;
+				});
+
+				// Check for any changes to "avoid" status due to the change in allergies
+				// Wrapping updates in Promise.all makes them wait for dbUserInfo.allergies to
+				// to update
+				let changed = false;
+				const updateRecentScans = await Promise.all(
+					dbUserInfo.recentScans.map(async (scan) => {
+						const result = await searchApi.search(
+							scan.barcode,
+							dbUserInfo.allergies
+						);
+						if (scan.avoid !== result.avoid) {
+							scan.avoid = result.avoid;
+							changed = true;
+						}
+						return scan;
+					})
+				);
+				const updateSavedProducts = await Promise.all(
+					dbUserInfo.savedProducts.map(async (scan) => {
+						const result = await searchApi.search(
+							scan.barcode,
+							dbUserInfo.allergies
+						);
+						if (scan.avoid !== result.avoid) {
+							scan.avoid = result.avoid;
+							changed = true;
+						}
+						return scan;
+					})
+				);
+
+				if (changed) {
+					dbUserInfo.recentScans = updateRecentScans;
+					dbUserInfo.savedProducts = updateSavedProducts;
+				}
+
+				await setDoc(docRef, dbUserInfo);
+
+				setReadyToNavigate(true);
+				setUserInfo(dbUserInfo);
+			} else {
+				throw new Error(
+					"User record not found in DB. This should never happen."
+				);
+			}
+		} catch (err) {
+			console.error(err);
+			alert(
+				"Sorry! We ran into an unexpected error trying save to your allergies. Please check your network connection and try again."
+			);
 		}
 	};
 
@@ -163,27 +307,39 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 		// Filter out any "s" that the user possibly added to the end of their search
 		// e.g. If the user searches "eggs", trim it into "egg"
 		let keywords = searchText.split(" ");
-		keywords = keywords.map((keyword) => {
-			if (keyword[keyword.length - 1] === "s" && keyword.length > 3) {
-				return keyword.slice(0, -1);
-			} else {
-				return keyword;
-			}
-		});
+		// keywords = keywords.map((keyword) => {
+		// 	if (keyword[keyword.length - 1] === "s" && keyword.length > 3) {
+		// 		return keyword.slice(0, -1);
+		// 	} else {
+		// 		return keyword;
+		// 	}
+		// });
 
 		// Find all ingredients that include at least one of the search keywords
 		const searchResults = [];
 		ingredients.forEach((ingredient) => {
-			keywords.forEach((keyword) => {
-				if (
+			if (
+				keywords.every((keyword) =>
 					ingredient.name
 						.toLowerCase()
-						.includes(keyword.toLowerCase()) &&
-					!searchResults.includes(ingredient)
-				) {
-					searchResults.push(ingredient);
-				}
-			});
+						.includes(keyword.toLowerCase())
+				) &&
+				!searchResults.includes(ingredient)
+			) {
+				searchResults.push(ingredient);
+			}
+
+			// Old method for searching
+			// keywords.forEach((keyword) => {
+			// 	if (
+			// 		ingredient.name
+			// 			.toLowerCase()
+			// 			.includes(keyword.toLowerCase()) &&
+			// 		!searchResults.includes(ingredient)
+			// 	) {
+			// 		searchResults.push(ingredient);
+			// 	}
+			// });
 		});
 
 		setPage(0);
@@ -435,14 +591,6 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 								})}
 							</View>
 
-							{/* <Text
-							style={{
-								...styles.ingredientsSectionLabel,
-								marginTop: addedIngredients.length > 0 ? 5 : 10,
-							}}
-						>
-							Ingredients
-						</Text> */}
 							{activeIngredients.map((element) => {
 								return (
 									<View
@@ -567,7 +715,9 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 							onPress={handleSubmit}
 						>
 							<Text style={styles.submitChangesButtonText}>
-								{route.params?.firstTimeSetup
+								{submitting
+									? "Submitting..."
+									: route.params?.firstTimeSetup
 									? "Submit"
 									: "Submit Changes"}
 							</Text>
