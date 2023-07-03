@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useUserStore } from "../util/userStore";
 import { FIREBASE_AUTH } from "../firebaseConfig";
-import { FontAwesome } from "@expo/vector-icons";
 import colors from "../config/colors";
 import ProfileInfoCardStatistic from "./ProfileInfoCardStatistic";
 
@@ -28,7 +27,10 @@ const ProfileInfoCard = ({ navigation }) => {
 						navigation.navigate("Settings");
 					}}
 				>
-					<FontAwesome name="gear" size={24} color={colors.gray} />
+					<Image
+						style={{ width: "100%", height: "100%" }}
+						source={require("../assets/img/settings_icon.png")}
+					/>
 				</Pressable>
 				<Image
 					source={require("../assets/img/default_profile_pic.png")}

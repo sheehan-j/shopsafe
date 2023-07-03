@@ -72,6 +72,7 @@ const App = () => {
 					require("./assets/img/scan_icon.png"),
 					require("./assets/img/back_icon.png"),
 					require("./assets/img/default_profile_pic.png"),
+					require("./assets/img/settings_icon.png"),
 					require("./assets/img/x_icon_gray.png"),
 					require("./assets/img/x_icon_navy.png"),
 					require("./assets/img/plus_icon.png"),
