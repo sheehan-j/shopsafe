@@ -31,7 +31,7 @@ const ProfileInfoCard = ({ navigation }) => {
 					<FontAwesome name="gear" size={24} color={colors.gray} />
 				</Pressable>
 				<Image
-					source={require("../assets/img/profile_picture.jpg")}
+					source={require("../assets/img/default_profile_pic.png")}
 					style={styles.profilePicture}
 				/>
 				<Text
