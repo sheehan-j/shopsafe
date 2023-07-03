@@ -348,7 +348,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.appBackground,
+		backgroundColor: "white",
 	},
 	sectionHeader: {
 		width: "100%",
@@ -410,8 +410,10 @@ const styles = StyleSheet.create({
 	},
 	menuContainer: {
 		width: "100%",
+		height: "100%",
+		height: "100%",
+		backgroundColor: colors.appBackground,
 		paddingBottom: 160, // Accounting for navbar
-		// backgroundColor: colors.appBackground,
 		paddingTop: 25,
 		paddingHorizontal: 25,
 	},
