@@ -55,26 +55,6 @@ const App = () => {
 					"Inter-Semi": require("./assets/fonts/Inter-SemiBold.ttf"),
 				});
 
-				// Check if there is a current user
-				const currentUser = FIREBASE_AUTH.currentUser;
-				alert(currentUser?.email);
-				if (currentUser) {
-					setUser(currentUser);
-
-					// Set user info
-					const docRef = doc(FIRESTORE, "users", currentUser.uid);
-					const docSnap = await getDoc(docRef);
-
-					if (docSnap.exists()) {
-						setUserInfo(docSnap.data());
-					} else {
-						alert(
-							"Sorry! There was a problem logging you. Please provide your credentials again."
-						);
-						FIREBASE_AUTH.currentUser.signOut();
-					}
-				}
-
 				// Cache image icons for faster load in-app
 				const imageAssets = cacheImages([
 					require("./assets/img/check_icon.png"),
