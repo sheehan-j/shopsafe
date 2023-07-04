@@ -1,6 +1,5 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
-// import { initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import {
 	browserLocalPersistence,
@@ -10,9 +9,8 @@ import {
 import {
 	initializeAuth,
 	getReactNativePersistence,
-	reactNativeLocalPersistence,
 } from "firebase/auth/react-native";
-import { ReactNativeAsyncStorage } from "firebase/auth/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyBRWvxAzkQFqAxGiI3a0TV31XTKKT4oRDA",
@@ -26,29 +24,29 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-// export const FIREBASE_APP = initializeApp(firebaseConfig);
-// export const FIRESTORE = getFirestore(FIREBASE_APP);
+export const FIREBASE_APP = initializeApp(firebaseConfig);
+export const FIRESTORE = getFirestore(FIREBASE_APP);
 // console.log(getReactNativePersistence(AsyncStorage));
 // export const FIREBASE_AUTH = getAuth(FIREBASE_APP);
-// export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
-// 	persistence: getReactNativePersistence(AsyncStorage),
-// });
+export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+	persistence: getReactNativePersistence(AsyncStorage),
+});
 
-let FIREBASE_APP, FIREBASE_AUTH;
-if (!getApps().length) {
-	try {
-		FIREBASE_APP = initializeApp(firebaseConfig);
-		FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
-			persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-		});
-	} catch (error) {
-		console.log("Error initializing app: " + error);
-	}
-} else {
-	alert("existing app found");
-	FIREBASE_APP = getApp();
-	FIREBASE_AUTH = getAuth(FIREBASE_APP);
-}
+// let FIREBASE_APP, FIREBASE_AUTH;
+// if (!getApps().length) {
+// 	try {
+// 		FIREBASE_APP = initializeApp(firebaseConfig);
+// 		FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+// 			persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+// 		});
+// 	} catch (error) {
+// 		console.log("Error initializing app: " + error);
+// 	}
+// } else {
+// 	alert("existing app found");
+// 	FIREBASE_APP = getApp();
+// 	FIREBASE_AUTH = getAuth(FIREBASE_APP);
+// }
 
-const FIRESTORE = getFirestore(FIREBASE_APP);
-export { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE };
+// const FIRESTORE = getFirestore(FIREBASE_APP);
+// export { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE };
