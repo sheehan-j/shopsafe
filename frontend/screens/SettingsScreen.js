@@ -12,14 +12,15 @@ import { useState, useEffect } from "react";
 import colors from "../config/colors";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import { useUserStore } from "../util/userStore";
-import { FIREBASE_AUTH } from "../firebaseConfig";
+import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const SettingsScreen = ({ navigation }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const [focused, setFocused] = useState("");
 	const [firstname, setFirstname] = useState("");
 	const [lastname, setLastname] = useState("");
-	const [password, setPassword] = useState("");
+	const [changing, setChanging] = useState("");
 	const { userInfo, setUserInfo } = useUserStore((state) => ({
 		userInfo: state.userInfo,
 		setUserInfo: state.setUserInfo,
@@ -30,7 +31,43 @@ const SettingsScreen = ({ navigation }) => {
 		setLastname(userInfo.lastname);
 	}, [userInfo]);
 
+	const handleChangeName = async (type) => {
+		if (changing !== "") return;
+		try {
+			setChanging(type);
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+
+			if (!docSnap.exists())
+				throw new Error("User record not found in DB.");
+
+			dbUserInfo = docSnap.data();
+			if (type == "firstname") {
+				dbUserInfo.firstname = firstname;
+			} else if (type == "lastname") {
+				dbUserInfo.lastname = lastname;
+			} else {
+				throw new Error(
+					"Invalid type passed into handleChangeName function."
+				);
+			}
+
+			await setDoc(docRef, dbUserInfo);
+			setUserInfo(dbUserInfo);
+		} catch (err) {
+		} finally {
+			setChanging("");
+		}
+	};
+
 	const handleSignout = async () => {
+		if (changing !== "") return;
+
 		try {
 			await FIREBASE_AUTH.signOut();
 		} catch (err) {
@@ -56,7 +93,7 @@ const SettingsScreen = ({ navigation }) => {
 					<Pressable
 						style={styles.backIcon}
 						hitSlop={20}
-						onPress={() => navigation.pop()}
+						onPress={changing === "" && (() => navigation.pop())}
 					>
 						<Image
 							source={require("../assets/img/back_icon.png")}
@@ -85,6 +122,7 @@ const SettingsScreen = ({ navigation }) => {
 							label={"Firstname"}
 							value={firstname}
 							onChangeText={setFirstname}
+							editable={changing === ""}
 							placeholder={"Loading..."}
 							textContentType="givenName"
 							autoCompleteType="off"
@@ -98,14 +136,20 @@ const SettingsScreen = ({ navigation }) => {
 										? colors.greenPressed
 										: colors.green,
 									opacity:
-										firstname === userInfo.firstname
+										firstname === userInfo.firstname ||
+										changing !== ""
 											? 0.5
 											: 1,
 								},
 								styles.changeButton,
 							]}
+							onPress={() => handleChangeName("firstname")}
 						>
-							<Text style={styles.changeButtonText}>Change</Text>
+							<Text style={styles.changeButtonText}>
+								{changing === "firstname"
+									? "Changing..."
+									: "Change"}
+							</Text>
 						</Pressable>
 					</View>
 
@@ -122,6 +166,7 @@ const SettingsScreen = ({ navigation }) => {
 							label={"Lastname"}
 							value={lastname}
 							onChangeText={setLastname}
+							editable={changing === ""}
 							placeholder={"Loading..."}
 							onFocus={() => setFocused("lastname")}
 							onBlur={() => setFocused("")}
@@ -133,14 +178,20 @@ const SettingsScreen = ({ navigation }) => {
 										? colors.greenPressed
 										: colors.green,
 									opacity:
-										lastname === userInfo.lastname
+										lastname === userInfo.lastname ||
+										changing !== ""
 											? 0.5
 											: 1,
 								},
 								styles.changeButton,
 							]}
+							onPress={() => handleChangeName("lastname")}
 						>
-							<Text style={styles.changeButtonText}>Change</Text>
+							<Text style={styles.changeButtonText}>
+								{changing === "lastname"
+									? "Changing..."
+									: "Change"}
+							</Text>
 						</Pressable>
 					</View>
 					<Pressable
@@ -151,6 +202,7 @@ const SettingsScreen = ({ navigation }) => {
 									: colors.transGray,
 								borderWidth: 0.5,
 								borderColor: colors.transGrayPressed,
+								opacity: changing !== "" ? 0.5 : 1,
 							},
 							styles.changeButton,
 						]}
@@ -221,8 +273,8 @@ const styles = StyleSheet.create({
 		paddingVertical: 20,
 		borderRadius: 8,
 		marginBottom: 20,
-		borderColor: colors.navy,
-		borderWidth: 0.4,
+		// borderColor: colors.navy,
+		// borderWidth: 0.4,
 	},
 	settingTitle: {
 		fontFamily: "Inter-Medium",
