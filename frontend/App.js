@@ -59,6 +59,10 @@ const App = () => {
 					setUser(currentUser);
 				}
 
+				// Load ingredients JSON file
+				const ingredientsJson = require("./assets/ingredients.json");
+				await Asset.loadAsync(ingredientsJson);
+
 				// Cache image icons for faster load in-app
 				const imageAssets = cacheImages([
 					require("./assets/img/check_icon.png"),
