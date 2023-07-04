@@ -65,6 +65,10 @@ const ScanModal = ({
 		}
 	}, [userInfo, readyToClose]);
 
+	// if (!hasPermission || !permission || !permission?.granted) {
+	// 	return null;
+	// }
+
 	const getAspectRatio = async () => {
 		if (cameraRef.current && Platform.OS !== "ios") {
 			const ratios = await cameraRef.current.getSupportedRatiosAsync();
@@ -86,12 +90,9 @@ const ScanModal = ({
 		}
 	};
 
-	if (!hasPermission || !permission || !permission?.granted) {
-		setScanModalVisible(false);
-		return null;
-	}
-
 	const handleBarCodeScanned = async ({ data }) => {
+		if (!hasPermission || !permission) return;
+
 		setScanned(true);
 		let result; // Will store result from searchApi
 
@@ -161,7 +162,7 @@ const ScanModal = ({
 	return (
 		<View style={{ ...styles.container, height: height }}>
 			{/* <SafeAreaView style={styles.container}> */}
-			{Platform.OS === "ios" && (
+			{Platform.OS === "ios" && hasPermission && (
 				<BarCodeScanner
 					style={StyleSheet.absoluteFillObject}
 					onBarCodeScanned={
@@ -211,9 +212,18 @@ const ScanModal = ({
 							color: productNotFound ? colors.red : colors.green,
 						}}
 					>
-						{!scanned && !productNotFound && "Searching..."}
-						{scanned && !productNotFound && "Barcode detected"}
-						{productNotFound && "Product not found"}
+						{!hasPermission && "----"}
+						{hasPermission &&
+							!scanned &&
+							!productNotFound &&
+							"Searching..."}
+						{hasPermission &&
+							scanned &&
+							!productNotFound &&
+							"Barcode detected"}
+						{hasPermission &&
+							productNotFound &&
+							"Product not found"}
 					</Text>
 				</View>
 				<Pressable

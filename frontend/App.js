@@ -4,7 +4,7 @@ import * as Font from "expo-font";
 import { useEffect, useState } from "react";
 import { Asset } from "expo-asset";
 import { onAuthStateChanged } from "firebase/auth";
-import { FIREBASE_AUTH } from "./firebaseConfig";
+import { FIREBASE_AUTH, FIRESTORE } from "./firebaseConfig";
 import { useUserStore } from "./util/userStore";
 import * as SplashScreen from "expo-splash-screen";
 import HomeScreen from "./screens/HomeScreen";
@@ -16,6 +16,7 @@ import SignupScreen from "./screens/SignupScreen";
 import AllergiesSetupMessageScreen from "./screens/AllergiesSetupMessageScreen";
 import FinishSetupScreen from "./screens/FinishSetupScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import { doc, getDoc } from "firebase/firestore";
 
 // Stop splash screen from being hidden while the app is loading
 SplashScreen.preventAutoHideAsync();
@@ -34,10 +35,11 @@ function cacheImages(images) {
 
 const App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
-	const { user, userInfo, setUser } = useUserStore((state) => ({
+	const { user, userInfo, setUser, setUserInfo } = useUserStore((state) => ({
 		user: state.user,
 		userInfo: state.userInfo,
 		setUser: state.setUser,
+		setUserInfo: state.setUserInfo,
 	}));
 
 	// Load any resources or data that you need p rior to rendering the app
@@ -55,9 +57,22 @@ const App = () => {
 
 				// Check if there is a current user
 				const currentUser = FIREBASE_AUTH.currentUser;
-				alert(currentUser?.uid);
+				alert(currentUser?.email);
 				if (currentUser) {
 					setUser(currentUser);
+
+					// Set user info
+					const docRef = doc(FIRESTORE, "users", currentUser.uid);
+					const docSnap = await getDoc(docRef);
+
+					if (docSnap.exists()) {
+						setUserInfo(docSnap.data());
+					} else {
+						alert(
+							"Sorry! There was a problem logging you. Please provide your credentials again."
+						);
+						FIREBASE_AUTH.currentUser.signOut();
+					}
 				}
 
 				// Cache image icons for faster load in-app
@@ -80,7 +95,6 @@ const App = () => {
 				]);
 
 				await Promise.all([...imageAssets]);
-				alert("done loading");
 			} catch (e) {
 				console.warn(e);
 			} finally {

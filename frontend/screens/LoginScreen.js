@@ -56,6 +56,7 @@ const LoginScreen = ({ navigation }) => {
 			} else {
 				setError(`Unexpected error: ${e.code}`);
 			}
+			console.log(e);
 			setLoading(false);
 			return;
 		}
