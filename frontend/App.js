@@ -55,6 +55,7 @@ const App = () => {
 
 				// Check if there is a current user
 				const currentUser = FIREBASE_AUTH.currentUser;
+				alert(currentUser?.uid);
 				if (currentUser) {
 					setUser(currentUser);
 				}

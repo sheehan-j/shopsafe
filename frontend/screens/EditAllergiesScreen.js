@@ -102,8 +102,8 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 				setAddedIngredients(existingAddedIngredients);
 
 				// Add an "added" field to each ingredient
-				const response = require("../assets/test.json");
-				response.tags.forEach((element) => {
+				const jsonContent = require("../assets/ingredients.json");
+				jsonContent.ingredients.forEach((element) => {
 					if (
 						existingAddedIngredients.some(
 							(addedElement) => addedElement.id === element.id
@@ -115,9 +115,9 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 					}
 				});
 
-				setIngredients(response.tags);
+				setIngredients(jsonContent.ingredients);
 				setActiveIngredients(
-					processNewActiveIngredients(response.tags)
+					processNewActiveIngredients(jsonContent.ingredients)
 				);
 				setFirstProcess(false);
 				setLoading(false);
