@@ -40,15 +40,13 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	const [page, setPage] = useState(0); // Tracks which page of ingredients is currently displayed (30 per page)
 	const [changed, setChanged] = useState(false);
 	const [firstProcess, setFirstProcess] = useState(true);
-	const [loading, setLoading] = useState(true);
-	const [submitting, setSubmitting] = useState(false);
+	const [loading, setLoading] = useState(true); // Flag for when the page has just been navigated to and is loading ingredients
+	const [submitting, setSubmitting] = useState(false); // Flag for when the user has pressed "submit" and the page is loading
 	const { userInfo, setUserInfo } = useUserStore((state) => ({
 		userInfo: state.userInfo,
 		setUserInfo: state.setUserInfo,
 	}));
-	const [originalUserInfo, setOriginalUserInfo] = useState(null);
-
-	// State specifically used when this screen is part of the user setup process
+	const [originalUserInfo, setOriginalUserInfo] = useState(null); // So the completion of updating userInfo to new value can be tracked
 	const [readyToNavigate, setReadyToNavigate] = useState(false);
 	const { setupIngredients, setSetupIngredients } = useSignupStore(
 		(state) => ({
