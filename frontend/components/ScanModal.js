@@ -87,11 +87,8 @@ const ScanModal = ({
 	};
 
 	if (!hasPermission || !permission || !permission?.granted) {
-		return (
-			<View>
-				<Text>Grant camera permissions to this app.</Text>
-			</View>
-		);
+		setScanModalVisible(false);
+		return null;
 	}
 
 	const handleBarCodeScanned = async ({ data }) => {

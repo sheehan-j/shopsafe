@@ -80,6 +80,7 @@ const App = () => {
 				]);
 
 				await Promise.all([...imageAssets]);
+				alert("done loading");
 			} catch (e) {
 				console.warn(e);
 			} finally {
