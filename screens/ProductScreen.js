@@ -14,24 +14,48 @@ import { useEffect, useState } from "react";
 import useStatusBarHeight from "../util/useStatusBarHeight";
 import { FIREBASE_AUTH, FIRESTORE } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUserStore } from "../util/userStore";
+import { config } from "../config/constants";
 
 import CustomStatusBar from "../components/CustomStatusBar";
 import colors from "../config/colors";
 import ProductIngredientsOkay from "../components/ProductIngredientsOkay";
 import ProductIngredientsBad from "../components/ProductIngredientsBad";
 import searchApi from "../api/searchApi";
-import { useUserStore } from "../util/userStore";
 
 const ProductScreen = ({ navigation, route }) => {
 	const statusBarHeight = useStatusBarHeight();
 	const [product, setProduct] = useState(null);
 	const [loading, setLoading] = useState(true);
-	const setUserInfo = useUserStore((state) => state.setUserInfo);
+	const { userInfo, setUserInfo } = useUserStore((state) => ({
+		userInfo: state.userInfo,
+		setUserInfo: state.setUserInfo,
+	}));
 
 	useEffect(() => {
 		const loadProduct = async () => {
+			// Handle case when product is already loaded (i.e. product was scanned)
 			if (route.params?.productLoaded) {
 				setProduct(route.params.product);
+				setLoading(false);
+				return;
+			}
+
+			// Handle case where barcode was manually entered into search bar on home page
+			if (route.params?.textSearch) {
+				const searchResult = await handleTextSearch(
+					route.params.barcode
+				);
+				if (!searchResult) {
+					alert(
+						"Sorry! We did not find a product with this barcode. Please ensure you've typed it correctly."
+					);
+					setProduct(null);
+					navigation.pop();
+					return;
+				}
+
+				setProduct(searchResult);
 				setLoading(false);
 				return;
 			}
@@ -112,10 +136,74 @@ const ProductScreen = ({ navigation, route }) => {
 		loadProduct();
 	}, []);
 
+	// Logic for when the user searches for a product through the search bar
+	// Updates user's recentScans, which normally happens in handleBarCodeScanned
+	const handleTextSearch = async (barcode) => {
+		let result; // Will store result from searchApi
+
+		try {
+			const docRef = doc(
+				FIRESTORE,
+				"users",
+				FIREBASE_AUTH.currentUser.uid
+			);
+			const docSnap = await getDoc(docRef);
+			let dbUserInfo;
+
+			if (docSnap.exists()) {
+				dbUserInfo = docSnap.data();
+			} else {
+				throw new Error("User info not found in DB.");
+			}
+
+			// Get product data from API
+			result = await searchApi.search(barcode, dbUserInfo?.allergies);
+
+			// If product not found was returned by API
+			if (result.status == 0) {
+				return null;
+			}
+
+			// If the user has reached 20 scans, remove the oldest
+			if (dbUserInfo.recentScans.length == config.MAX_RECENT_SCANS) {
+				dbUserInfo.recentScans.splice(
+					dbUserInfo.recentScans.length - 1,
+					1
+				);
+			}
+
+			// Add the new scan into user's existing list of sans
+			dbUserInfo.recentScans = [
+				{
+					id: dbUserInfo.scanCount + 1,
+					image_url: result.image_url,
+					name: result.name,
+					barcode: barcode,
+					avoid: result.avoid,
+					saved: false,
+				},
+				...dbUserInfo.recentScans,
+			];
+			dbUserInfo.scanCount = dbUserInfo.scanCount + 1;
+
+			// Update user info in db
+			await setDoc(docRef, dbUserInfo);
+			setUserInfo(dbUserInfo);
+		} catch (err) {
+			console.log(err);
+			alert(
+				"Sorry! We ran into an error processing this barcode. Please try again."
+			);
+			return null;
+		}
+
+		return result;
+	};
+
 	const processIngredientsIntoComponents = () => {
 		const ingredients = [];
 
-		product.ingredients.map((ingredient, index) => {
+		product?.ingredients?.map((ingredient, index) => {
 			if (!ingredient.avoid) {
 				ingredients.push(
 					<View key={index} style={styles.ingredient}>

@@ -1,4 +1,13 @@
-import { StyleSheet, View, ScrollView, Text } from "react-native";
+import {
+	StyleSheet,
+	View,
+	ScrollView,
+	Text,
+	TextInput,
+	Pressable,
+	Image,
+	Keyboard,
+} from "react-native";
 import Modal from "react-native-modal";
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
@@ -40,6 +49,7 @@ const HomeScreen = ({ navigation, route }) => {
 	const [productNotFound, setProductNotFound] = useState(false);
 	const [scanned, setScanned] = useState(false);
 	const [saveStatusUpdating, setSaveStatusUpdating] = useState(false);
+	const [searchText, setSearchText] = useState("");
 
 	useEffect(() => {
 		if (route.params?.openScanModal) {
@@ -153,22 +163,19 @@ const HomeScreen = ({ navigation, route }) => {
 		}
 	};
 
-	const slideDownAnimation = useAnimatedStyle(() => {
-		return {
-			transform: [
-				{
-					translateY:
-						saveMessageAnimation.value * (40 + statusBarHeight),
-				},
-			],
-		};
-	});
+	// Search logic
+	const handleSearch = () => {
+		navigation.navigate("Product", {
+			barcode: searchText,
+			textSearch: true,
+		});
+	};
 
-	const fadeInAnimation = useAnimatedStyle(() => {
-		return {
-			opacity: opacityAnimation.value,
-		};
-	});
+	// When user presses "X" icon in the searchbar
+	const clearSearch = () => {
+		setSearchText("");
+		Keyboard.dismiss();
+	};
 
 	// Processing Recent Scans into Components
 	const renderRecentScans = () => {
@@ -221,6 +228,24 @@ const HomeScreen = ({ navigation, route }) => {
 		return rows;
 	};
 
+	// Animation logic
+	const slideDownAnimation = useAnimatedStyle(() => {
+		return {
+			transform: [
+				{
+					translateY:
+						saveMessageAnimation.value * (40 + statusBarHeight),
+				},
+			],
+		};
+	});
+
+	const fadeInAnimation = useAnimatedStyle(() => {
+		return {
+			opacity: opacityAnimation.value,
+		};
+	});
+
 	return (
 		<>
 			{/* Set status bar content to dark */}
@@ -244,6 +269,40 @@ const HomeScreen = ({ navigation, route }) => {
 					showsVerticalScrollIndicator={false}
 					showsHorizontalScrollIndicator={false}
 				>
+					{/* SEARCH BAR */}
+					<View style={styles.searchWrapper}>
+						<View style={styles.searchContainer}>
+							<TextInput
+								style={styles.searchBar}
+								value={searchText}
+								onChangeText={setSearchText}
+								keyboardType="number-pad"
+								returnKeyType={
+									Platform.OS === "ios" ? "done" : "search"
+								}
+								placeholder="Enter a barcode number"
+								onSubmitEditing={handleSearch}
+							/>
+
+							{/* CLEAR SEARCH BUTTON */}
+							{searchText && (
+								<Pressable
+									style={styles.clearSearchIcon}
+									hitSlop={20}
+									onPress={clearSearch}
+								>
+									<Image
+										source={require("../assets/img/x_icon_gray.png")}
+										style={{
+											width: "100%",
+											height: "100%",
+										}}
+									/>
+								</Pressable>
+							)}
+						</View>
+					</View>
+
 					<View
 						style={{
 							flex: 1,
@@ -306,6 +365,33 @@ const styles = StyleSheet.create({
 		color: colors.navy,
 		marginBottom: 10,
 		paddingHorizontal: 25,
+	},
+	searchWrapper: {
+		width: "100%",
+		paddingHorizontal: 25,
+		marginBottom: 20,
+	},
+	searchContainer: {
+		width: "100%",
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "white",
+		borderRadius: 7,
+	},
+	searchBar: {
+		flex: 1,
+		fontFamily: "Inter-Medium",
+		fontSize: 16,
+		color: colors.navy,
+		borderRadius: 5,
+		paddingLeft: 15,
+		paddingVertical: 10,
+	},
+	clearSearchIcon: {
+		height: 16,
+		aspectRatio: 1,
+		marginRight: 12,
+		marginLeft: 14,
 	},
 	recentScansContainer: {
 		width: "100%",
