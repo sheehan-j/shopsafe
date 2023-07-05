@@ -301,7 +301,7 @@ const ProfileScreen = ({ navigation }) => {
 					<Animated.View
 						style={[
 							{
-								flex: 1,
+								height: "100%",
 								flexDirection: "row",
 							},
 							animatedMenuStyle,
@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
 	},
 	menuContainer: {
 		width: "100%",
-		height: "100%",
 		height: "100%",
 		backgroundColor: colors.appBackground,
 		paddingBottom: 160, // Accounting for navbar
