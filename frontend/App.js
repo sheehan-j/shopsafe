@@ -91,7 +91,6 @@ const App = () => {
 		const userInfoReady = userInfo !== null || noUserLoggedIn;
 		if (appIsReady && userInfoReady) {
 			SplashScreen.hideAsync();
-			setNoUserLoggedIn(false);
 		}
 	}, [appIsReady, userInfo, noUserLoggedIn]);
 
@@ -100,15 +99,21 @@ const App = () => {
 			setUser(new_user);
 
 			if (new_user) {
-				const docRef = doc(FIRESTORE, "users", new_user.uid);
-				const docSnap = await getDoc(docRef);
+				try {
+					const docRef = doc(FIRESTORE, "users", new_user.uid);
+					const docSnap = await getDoc(docRef);
 
-				if (docSnap.exists()) {
+					if (!docSnap.exists())
+						throw new Error("User record not found.");
+
+					console.log("user logged in");
 					setUserInfo(docSnap.data());
-				} else {
+				} catch (err) {
 					setUser(null);
 					setNoUserLoggedIn(true);
 				}
+			} else {
+				setNoUserLoggedIn(true);
 			}
 		});
 	}, []);
