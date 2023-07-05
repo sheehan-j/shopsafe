@@ -109,6 +109,8 @@ const App = () => {
 					console.log("user logged in");
 					setUserInfo(docSnap.data());
 				} catch (err) {
+					// If for some reason the user was not found in the DB
+					console.error(err);
 					setUser(null);
 					setNoUserLoggedIn(true);
 				}
