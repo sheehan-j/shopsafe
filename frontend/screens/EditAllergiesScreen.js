@@ -182,7 +182,11 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	useEffect(() => {
 		// If userInfo has finished updating from its original state and the screen
 		// is ready to navigate away
-		if (readyToNavigate && userInfo !== originalUserInfo) {
+		if (
+			readyToNavigate &&
+			userInfo !== originalUserInfo &&
+			!route.params?.firstTimeSetup
+		) {
 			setReadyToNavigate(false);
 			setSubmitting(false);
 			fadeIn();
