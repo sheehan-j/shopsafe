@@ -99,14 +99,16 @@ const App = () => {
 		onAuthStateChanged(FIREBASE_AUTH, async (new_user) => {
 			setUser(new_user);
 
-			const docRef = doc(FIRESTORE, "users", new_user.uid);
-			const docSnap = await getDoc(docRef);
+			if (new_user) {
+				const docRef = doc(FIRESTORE, "users", new_user.uid);
+				const docSnap = await getDoc(docRef);
 
-			if (docSnap.exists()) {
-				setUserInfo(docSnap.data());
-			} else {
-				setUser(null);
-				setNoUserLoggedIn(true);
+				if (docSnap.exists()) {
+					setUserInfo(docSnap.data());
+				} else {
+					setUser(null);
+					setNoUserLoggedIn(true);
+				}
 			}
 		});
 	}, []);
