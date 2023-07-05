@@ -25,12 +25,16 @@ import ProductSavedMessage from "../components/ProductSavedMessage";
 import NoDataFound from "../components/NoDataFound";
 
 const HomeScreen = ({ navigation, route }) => {
+	const { userInfo, setUserInfo, firstTimeLoad, setFirstTimeLoad } =
+		useUserStore((state) => ({
+			userInfo: state.userInfo,
+			setUserInfo: state.setUserInfo,
+			firstTimeLoad: state.firstTimeLoad,
+			setFirstTimeLoad: state.setFirstTimeLoad,
+		}));
 	const statusBarHeight = useStatusBarHeight();
 	const saveMessageAnimation = useSharedValue(0);
-	const { userInfo, setUserInfo } = useUserStore((state) => ({
-		userInfo: state.userInfo,
-		setUserInfo: state.setUserInfo,
-	}));
+	const opacityAnimation = useSharedValue(firstTimeLoad ? 0 : 1);
 	const [scanModalVisible, setScanModalVisible] = useState(false);
 	const [product, setProduct] = useState(null);
 	const [productNotFound, setProductNotFound] = useState(false);
@@ -44,6 +48,13 @@ const HomeScreen = ({ navigation, route }) => {
 			route.params.openScanModal = false;
 		}
 	}, [route.params?.openScanModal]);
+
+	useEffect(() => {
+		opacityAnimation.value = withTiming(1, {
+			duration: 200,
+		});
+		setFirstTimeLoad(false);
+	}, []);
 
 	// Resetting data and navigating after product scan
 	const scanModalDismissed = () => {
@@ -153,6 +164,12 @@ const HomeScreen = ({ navigation, route }) => {
 		};
 	});
 
+	const fadeInAnimation = useAnimatedStyle(() => {
+		return {
+			opacity: opacityAnimation.value,
+		};
+	});
+
 	// Processing Recent Scans into Components
 	const renderRecentScans = () => {
 		if (!userInfo?.recentScans || userInfo?.recentScans?.length === 0) {
@@ -208,7 +225,7 @@ const HomeScreen = ({ navigation, route }) => {
 		<>
 			{/* Set status bar content to dark */}
 			<StatusBar style={"light"} />
-			<View style={styles.container}>
+			<Animated.View style={[styles.container, fadeInAnimation]}>
 				<Animated.View
 					style={[slideDownAnimation, styles.savedMessageContainer]}
 				>
@@ -271,7 +288,7 @@ const HomeScreen = ({ navigation, route }) => {
 						setProductNotFound={setProductNotFound}
 					/>
 				</Modal>
-			</View>
+			</Animated.View>
 		</>
 	);
 };

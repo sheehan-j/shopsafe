@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
 		// aspectRatio: 1,
 		justifyContent: "center",
 		alignContent: "center",
-		backgroundColor: "red",
+		backgroundColor: "rgba(0,0,0,0.5)",
 		zIndex: 97,
 	},
 	modal_background: {

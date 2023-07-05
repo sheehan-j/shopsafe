@@ -35,6 +35,7 @@ function cacheImages(images) {
 
 const App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
+	const [noUserLoggedIn, setNoUserLoggedIn] = useState(false);
 	const { user, userInfo, setUser, setUserInfo } = useUserStore((state) => ({
 		user: state.user,
 		userInfo: state.userInfo,
@@ -87,18 +88,31 @@ const App = () => {
 
 	// Hide the splash screen once appIsReady is true
 	useEffect(() => {
-		if (appIsReady) {
+		const userInfoReady = userInfo !== null || noUserLoggedIn;
+		if (appIsReady && userInfoReady) {
 			SplashScreen.hideAsync();
+			setNoUserLoggedIn(false);
 		}
-	}, [appIsReady]);
+	}, [appIsReady, userInfo, noUserLoggedIn]);
 
 	useEffect(() => {
-		onAuthStateChanged(FIREBASE_AUTH, (new_user) => {
+		onAuthStateChanged(FIREBASE_AUTH, async (new_user) => {
 			setUser(new_user);
+
+			const docRef = doc(FIRESTORE, "users", new_user.uid);
+			const docSnap = await getDoc(docRef);
+
+			if (docSnap.exists()) {
+				setUserInfo(docSnap.data());
+			} else {
+				setUser(null);
+				setNoUserLoggedIn(true);
+			}
 		});
 	}, []);
 
-	if (!appIsReady) {
+	const userInfoReady = userInfo !== null || noUserLoggedIn;
+	if (!appIsReady || !userInfoReady) {
 		return null;
 	}
 
