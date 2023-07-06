@@ -1,6 +1,6 @@
 # Shopsafe
 
-**Shopsafe** is a cross-platform mobile application that serves as a helpful tool for anyone shopping in a grocery store. Shopsafe offers the ability to create a user profile of ingredients that you'd like to avoid due to allergies, diets, or any other reason. Based on this, scan any product in a while at the grocery store and Shopsafe will report whether you should avoid it. Scanning a product will load a detailed list of ingredients, highlighting those that you want to avoid. Products can be saved at any time for future reference.
+**Shopsafe** is a cross-platform mobile application that serves as a helpful tool for anyone shopping in a grocery store. Shopsafe offers the ability to create a profile of ingredients that you'd like to avoid due to allergies, diets, or any other reason. Based on this, Shopsafe will report whether any product scanned at the grocery store should be avoided. Scanning a product will load a detailed list of ingredients, highlighting those that you want to avoid. Products can be saved at any time for future reference.
 
 # Features
 
