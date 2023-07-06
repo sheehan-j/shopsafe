@@ -76,6 +76,13 @@ const styles = StyleSheet.create({
 		padding: 12,
 		boxSizing: "content-box",
 		borderRadius: 7,
+		shadowColor: "#888888",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.03,
+		shadowRadius: 2,
 	},
 	iconsContainer: {
 		width: "100%",

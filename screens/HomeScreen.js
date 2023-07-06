@@ -377,6 +377,13 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		backgroundColor: "white",
 		borderRadius: 7,
+		shadowColor: "#888888",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.06,
+		shadowRadius: 2,
 	},
 	searchBar: {
 		flex: 1,
