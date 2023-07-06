@@ -43,17 +43,29 @@ const ProfileInfoCard = ({ navigation }) => {
 				<View style={styles.statsContainer}>
 					<ProfileInfoCardStatistic
 						number={userInfo?.scanCount}
-						label={"Total\nScans"}
+						label={
+							userInfo?.scanCount === 1
+								? "Total\nScan"
+								: "Total\nScans"
+						}
 						margin={false}
 					/>
 					<ProfileInfoCardStatistic
 						number={userInfo?.savedProducts?.length}
-						label={"Products\nSaved"}
+						label={
+							userInfo?.savedProducts?.length === 1
+								? "Product\nSaved"
+								: "Products\nSaved"
+						}
 						margin={true}
 					/>
 					<ProfileInfoCardStatistic
 						number={userInfo?.allergies?.length}
-						label={"Allergies\nAdded"}
+						label={
+							userInfo?.allergies?.length === 1
+								? "Allergy\nAdded"
+								: "Allergies\nAdded"
+						}
 						margin={false}
 					/>
 				</View>
