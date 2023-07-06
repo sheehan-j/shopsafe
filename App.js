@@ -36,6 +36,7 @@ function cacheImages(images) {
 const App = () => {
 	const [appIsReady, setAppIsReady] = useState(false);
 	const [noUserLoggedIn, setNoUserLoggedIn] = useState(false);
+	const [initialLoad, setInitialLoad] = useState(true);
 	const { user, userInfo, setUser, setUserInfo } = useUserStore((state) => ({
 		user: state.user,
 		userInfo: state.userInfo,
@@ -89,7 +90,8 @@ const App = () => {
 	// Hide the splash screen once appIsReady is true
 	useEffect(() => {
 		const userInfoReady = userInfo !== null || noUserLoggedIn;
-		if (appIsReady && userInfoReady) {
+		if (appIsReady && userInfoReady && initialLoad) {
+			setInitialLoad(false);
 			SplashScreen.hideAsync();
 		}
 	}, [appIsReady, userInfo, noUserLoggedIn]);
@@ -106,7 +108,6 @@ const App = () => {
 					if (!docSnap.exists())
 						throw new Error("User record not found.");
 
-					console.log("user logged in");
 					setUserInfo(docSnap.data());
 				} catch (err) {
 					// If for some reason the user was not found in the DB
