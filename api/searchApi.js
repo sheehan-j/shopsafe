@@ -1,17 +1,6 @@
 import { config } from "../config/constants";
 import processIngredients from "../util/processIngredients";
 
-const testAllergies = [
-	{
-		user: "jordansheehan26@gmail.com",
-		id: "en:e338",
-	},
-	{
-		user: "jordansheehan26@gmail.com",
-		id: "en:e221",
-	},
-];
-
 exports.search = async (barcode, allergies) => {
 	const SEARCH_URL = config.FOOD_API_BASE + barcode;
 	console.log("Requesting OpenFood API at " + SEARCH_URL);
