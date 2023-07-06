@@ -130,10 +130,12 @@ const ScanModal = ({
 			}
 
 			// Add the new scan into user's existing list of sans
+			// Set image_url to "" if result.image_url is undefined
+			// Other components are prepared to handle image_url == ""
 			dbUserInfo.recentScans = [
 				{
 					id: dbUserInfo.scanCount + 1,
-					image_url: result.image_url,
+					image_url: result?.image_url ? result?.image_url : "",
 					name: result.name,
 					barcode: data,
 					avoid: result.avoid,
@@ -152,6 +154,9 @@ const ScanModal = ({
 			alert(
 				"Sorry! We ran into an error processing this barcode. Please try again."
 			);
+			setTimeout(() => {
+				setScanned(false);
+			}, 3000);
 			return;
 		}
 

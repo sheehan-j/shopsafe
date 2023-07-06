@@ -59,7 +59,18 @@ const ProductListing = ({
 			</View>
 			<Pressable onPress={onPress}>
 				<View style={styles.imageContainer}>
-					<Image source={{ uri: image_url }} style={styles.image} />
+					{image_url !== "" && (
+						<Image
+							source={{ uri: image_url }}
+							style={styles.image}
+						/>
+					)}
+					{image_url === "" && (
+						<Image
+							source={require("../assets/img/no_image_found.png")}
+							style={styles.image}
+						/>
+					)}
 				</View>
 				<Text style={styles.title}>{name}</Text>
 			</Pressable>
@@ -108,6 +119,9 @@ const styles = StyleSheet.create({
 	image: {
 		aspectRatio: 1,
 		resizeMode: "contain",
+		flex: 1,
+		width: undefined,
+		height: undefined,
 	},
 	title: {
 		fontFamily: "Inter-Semi",

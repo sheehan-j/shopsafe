@@ -266,10 +266,18 @@ const ProductScreen = ({ navigation, route }) => {
 							</View>
 
 							<View style={styles.productImageContainer}>
-								<Image
-									source={{ uri: product.image_url }}
-									style={styles.productImage}
-								/>
+								{product.image_url && (
+									<Image
+										source={{ uri: product.image_url }}
+										style={styles.productImage}
+									/>
+								)}
+								{!product.image_url && (
+									<Image
+										source={require("../assets/img/no_image_found.png")}
+										style={styles.productImage}
+									/>
+								)}
 							</View>
 							{product.brands && (
 								<Text style={styles.brand}>
@@ -389,6 +397,9 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		marginBottom: 15,
 		backgroundColor: colors.navy,
+		flex: 1,
+		height: "100%",
+		width: "100%",
 	},
 	brand: {
 		width: "100%",
