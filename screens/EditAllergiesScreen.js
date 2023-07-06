@@ -306,42 +306,35 @@ const EditAllergiesScreen = ({ navigation, route }) => {
 	// When user presses "search" button on their keyboard
 	const handleSearch = () => {
 		setLoading(true);
-		// Filter out any "s" that the user possibly added to the end of their search
-		// e.g. If the user searches "eggs", trim it into "egg"
 		let keywords = searchText.split(" ");
-		// keywords = keywords.map((keyword) => {
-		// 	if (keyword[keyword.length - 1] === "s" && keyword.length > 3) {
-		// 		return keyword.slice(0, -1);
-		// 	} else {
-		// 		return keyword;
-		// 	}
-		// });
 
 		// Find all ingredients that include at least one of the search keywords
 		const searchResults = [];
 		ingredients.forEach((ingredient) => {
-			if (
-				keywords.every((keyword) =>
+			for (let i = 0; i < keywords.length; i++) {
+				if (
 					ingredient.name
 						.toLowerCase()
-						.includes(keyword.toLowerCase())
-				) &&
-				!searchResults.includes(ingredient)
-			) {
-				searchResults.push(ingredient);
+						.includes(keywords[i].toLowerCase()) &&
+					!searchResults.includes(ingredient)
+				) {
+					searchResults.push(ingredient);
+				} else {
+					// If this keyword was not included in the ingredient name,
+					// double check that this keyword ends in an "s"
+					// If it does, check that the version of this word without an "s" is contained
+					// This accounts for cases  like ingredient is "peanut" and keyword is "peanuts"
+					if (
+						keywords[i][keywords[i].length - 1] == "s" &&
+						ingredient.name
+							.toLowerCase()
+							.includes(keywords[i].slice(0, -1).toLowerCase()) &&
+						!searchResults.includes(ingredient)
+					) {
+						searchResults.push(ingredient);
+					}
+				}
 			}
-
-			// Old method for searching
-			// keywords.forEach((keyword) => {
-			// 	if (
-			// 		ingredient.name
-			// 			.toLowerCase()
-			// 			.includes(keyword.toLowerCase()) &&
-			// 		!searchResults.includes(ingredient)
-			// 	) {
-			// 		searchResults.push(ingredient);
-			// 	}
-			// });
 		});
 
 		setPage(0);
