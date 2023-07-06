@@ -33,6 +33,11 @@ const SettingsScreen = ({ navigation }) => {
 
 	const handleChangeName = async (type) => {
 		if (changing !== "") return;
+
+		// Check that changes have been made
+		if (type === "firstname" && firstname === userInfo.firstname) return;
+		if (type === "lastname" && lastname === userInfo.lastname) return;
+
 		try {
 			setChanging(type);
 			const docRef = doc(
@@ -132,9 +137,11 @@ const SettingsScreen = ({ navigation }) => {
 						<Pressable
 							style={({ pressed }) => [
 								{
-									backgroundColor: pressed
-										? colors.greenPressed
-										: colors.green,
+									backgroundColor:
+										pressed &&
+										firstname !== userInfo.firstname
+											? colors.greenPressed
+											: colors.green,
 									opacity:
 										firstname === userInfo.firstname ||
 										changing !== ""
@@ -174,9 +181,11 @@ const SettingsScreen = ({ navigation }) => {
 						<Pressable
 							style={({ pressed }) => [
 								{
-									backgroundColor: pressed
-										? colors.greenPressed
-										: colors.green,
+									backgroundColor:
+										pressed &&
+										lastname !== userInfo.lastname
+											? colors.greenPressed
+											: colors.green,
 									opacity:
 										lastname === userInfo.lastname ||
 										changing !== ""
